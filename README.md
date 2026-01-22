@@ -14,10 +14,17 @@ Reddar scrapes Reddit, analyzes posts with a local LLM, and presents actionable 
 
 ## Screenshots
 
-Dashboard showing reports and stats:
-- Focus area selection for targeted scanning
-- Real-time progress with batch status
-- Detailed reports with Reddit source links
+### Dashboard
+![Dashboard](screenshots/dashboard.png)
+
+### Run Agent
+![Run Agent](screenshots/run-agent.png)
+
+### Report View
+![Report](screenshots/report.png)
+
+### LLM Usage
+![Usage](screenshots/usage.png)
 
 ## Requirements
 
