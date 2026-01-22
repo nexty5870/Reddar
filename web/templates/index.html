@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reddar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand': {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        
+        .glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        
+        .btn-primary {
+            background: #0f172a;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .btn-primary:hover {
+            background: #1e293b;
+            transform: translateY(-1px);
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .card:hover {
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 8px 32px rgba(0,0,0,0.04);
+            transform: translateY(-2px);
+        }
+        
+        .stat-pill {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .focus-chip {
+            transition: all 0.2s ease;
+        }
+        .focus-chip:hover {
+            background: #0f172a;
+            color: white;
+            border-color: transparent;
+        }
+        
+        .metric-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-color), transparent);
+        }
+        
+        .report-card {
+            transition: all 0.25s ease;
+        }
+        .report-card:hover {
+            border-color: #94a3b8;
+        }
+        
+        /* Logo dot with glow */
+        .logo-dot {
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.5), 0 0 4px rgba(16, 185, 129, 0.8);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.5), 0 0 4px rgba(16, 185, 129, 0.8); }
+            50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.7), 0 0 8px rgba(16, 185, 129, 1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen antialiased">
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 max-w-6xl">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <!-- Logo: Dot + Text -->
+                    <div class="logo-dot"></div>
+                    <div>
+                        <h1 class="text-lg font-semibold text-slate-900 tracking-tight">Reddar</h1>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="/usage" class="text-sm text-slate-500 hover:text-slate-900 transition-colors flex items-center gap-1.5 font-medium">
+                        <span class="iconify" data-icon="solar:chart-2-bold-duotone"></span>
+                        Usage
+                    </a>
+                    <a href="/run" class="btn-primary text-white px-5 py-2.5 rounded-lg font-medium text-sm transition-all flex items-center gap-2">
+                        <span class="iconify" data-icon="solar:play-bold"></span>
+                        Run Agent
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 max-w-6xl">
+        <!-- Hero Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="card rounded-lg p-5 transition-all metric-card" style="--accent-color: #0f172a;">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center">
+                        <span class="iconify text-slate-700 text-xl" data-icon="solar:document-text-bold-duotone"></span>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-slate-900">{{ total_reports }}</div>
+                <div class="text-sm text-slate-500">Reports</div>
+            </div>
+            <div class="card rounded-lg p-5 transition-all metric-card" style="--accent-color: #10b981;">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center">
+                        <span class="iconify text-emerald-600 text-xl" data-icon="solar:lightbulb-bolt-bold-duotone"></span>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-emerald-600">{{ reports | sum(attribute='opportunities_count') }}</div>
+                <div class="text-sm text-slate-500">Opportunities</div>
+            </div>
+            <div class="card rounded-lg p-5 transition-all metric-card" style="--accent-color: #f59e0b;">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center">
+                        <span class="iconify text-amber-600 text-xl" data-icon="solar:danger-triangle-bold-duotone"></span>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-amber-600">{{ reports | sum(attribute='pain_points_count') }}</div>
+                <div class="text-sm text-slate-500">Pain Points</div>
+            </div>
+            <div class="card rounded-lg p-5 transition-all metric-card" style="--accent-color: #0ea5e9;">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 rounded-lg bg-sky-50 flex items-center justify-center">
+                        <span class="iconify text-sky-600 text-xl" data-icon="solar:chat-square-code-bold-duotone"></span>
+                    </div>
+                </div>
+                <div class="text-3xl font-bold text-sky-600">{{ reports | sum(attribute='posts_analyzed') }}</div>
+                <div class="text-sm text-slate-500">Posts Analyzed</div>
+            </div>
+        </div>
+
+        <!-- LLM Usage Compact -->
+        <div class="card rounded-lg p-5 mb-8 transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="iconify text-emerald-500" data-icon="solar:cpu-bolt-bold-duotone"></span>
+                    <h2 class="text-sm font-medium text-slate-700">LLM Status</h2>
+                    <span id="connection-status" class="text-xs text-slate-400">connecting...</span>
+                </div>
+                <a href="/usage" class="text-xs font-medium text-slate-500 hover:text-slate-900 transition-colors">
+                    View Details
+                </a>
+            </div>
+            
+            <div class="flex flex-wrap gap-3">
+                <div class="stat-pill rounded-md px-4 py-2 flex items-center gap-2">
+                    <span class="text-xs text-slate-500">Requests</span>
+                    <span id="total-requests" class="text-sm font-semibold text-slate-900">-</span>
+                </div>
+                <div class="stat-pill rounded-md px-4 py-2 flex items-center gap-2">
+                    <span class="text-xs text-slate-500">Tokens</span>
+                    <span id="total-tokens" class="text-sm font-semibold text-emerald-600">-</span>
+                </div>
+                <div class="stat-pill rounded-md px-4 py-2 flex items-center gap-2">
+                    <span class="text-xs text-slate-500">Avg Latency</span>
+                    <span id="avg-latency" class="text-sm font-semibold text-slate-900">-</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Focus Areas -->
+        <div class="mb-8">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="iconify text-slate-400" data-icon="solar:target-bold-duotone"></span>
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Focus Areas</h2>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                {% for id, area in focus_areas.items() %}
+                <div class="focus-chip border border-slate-200 rounded-full px-4 py-2 text-sm font-medium text-slate-700 cursor-default flex items-center gap-2">
+                    {% if area.mode == 'news' %}
+                    <span class="iconify text-sky-500" data-icon="solar:global-bold"></span>
+                    {% else %}
+                    <span class="iconify text-emerald-500" data-icon="solar:dollar-bold"></span>
+                    {% endif %}
+                    {{ area.name }}
+                    <span class="text-xs text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{{ area.subreddits | length }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Reports -->
+        <div>
+            <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="iconify text-slate-400" data-icon="solar:folder-with-files-bold-duotone"></span>
+                    <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Reports</h2>
+                </div>
+                {% if reports %}
+                <span class="text-xs text-slate-400">{{ reports | length }} reports</span>
+                {% endif %}
+            </div>
+            
+            {% if reports %}
+            <div class="space-y-3">
+                {% for report in reports %}
+                <a href="/report/{{ report.id }}" class="report-card card block rounded-lg p-5 transition-all hover:shadow-md">
+                    <div class="flex justify-between items-start">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-1">
+                                <h3 class="text-base font-semibold text-slate-900">{{ report.focus_name }}</h3>
+                                {% if report.total_scans > 1 %}
+                                <span class="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full flex items-center gap-1">
+                                    <span class="iconify text-xs" data-icon="solar:refresh-bold"></span>
+                                    {{ report.total_scans }} scans
+                                </span>
+                                {% endif %}
+                            </div>
+                            <p class="text-sm text-slate-500 flex items-center gap-1">
+                                <span class="iconify text-xs" data-icon="solar:calendar-bold"></span>
+                                Updated {{ report.updated_at[:16] | replace('T', ' ') }}
+                            </p>
+                            {% if report.executive_summary %}
+                            <p class="text-sm text-slate-600 mt-3 line-clamp-2">{{ report.executive_summary }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="flex gap-5 ml-6">
+                            <div class="text-center">
+                                <div class="text-xl font-bold text-emerald-600">{{ report.opportunities_count }}</div>
+                                <div class="text-xs text-slate-400">Opportunities</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-xl font-bold text-amber-600">{{ report.pain_points_count }}</div>
+                                <div class="text-xs text-slate-400">Pain Points</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-xl font-bold text-slate-500">{{ report.posts_analyzed }}</div>
+                                <div class="text-xs text-slate-400">Posts</div>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card rounded-lg p-12 text-center">
+                <div class="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center mx-auto mb-5">
+                    <span class="iconify text-slate-400 text-3xl" data-icon="solar:radar-2-bold-duotone"></span>
+                </div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">No reports yet</h3>
+                <p class="text-slate-500 mb-6 max-w-sm mx-auto">Run the agent to scan Reddit and discover opportunities, pain points, and market insights.</p>
+                <a href="/run" class="btn-primary inline-flex items-center gap-2 text-white px-6 py-3 rounded-lg font-medium text-sm transition-all">
+                    <span class="iconify" data-icon="solar:play-bold"></span>
+                    Start Scanning
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="container mx-auto px-6 py-8 max-w-6xl">
+        <div class="flex items-center justify-center gap-2 text-xs text-slate-400">
+            Powered by GLM-4.7-Flash
+        </div>
+    </footer>
+
+    <script>
+        function formatNumber(num) {
+            if (num === null || num === undefined || num === '-') return '-';
+            if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toLocaleString();
+        }
+
+        function updateTokenUsage(data) {
+            const statusEl = document.getElementById('connection-status');
+            statusEl.innerHTML = data.connected 
+                ? '<span class="inline-flex items-center gap-1 text-emerald-600"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Connected</span>'
+                : '<span class="text-amber-600">Disconnected</span>';
+
+            document.getElementById('total-requests').textContent = formatNumber(data.total_requests);
+            document.getElementById('total-tokens').textContent = formatNumber(data.total_tokens);
+            document.getElementById('avg-latency').textContent = data.avg_latency_ms ? `${formatNumber(data.avg_latency_ms)}ms` : '-';
+        }
+
+        async function fetchTokenUsage() {
+            try {
+                const response = await fetch('/api/token-usage');
+                const data = await response.json();
+                updateTokenUsage(data);
+            } catch (error) {
+                updateTokenUsage({ connected: false });
+            }
+        }
+
+        fetchTokenUsage();
+        setInterval(fetchTokenUsage, 5000);
+    </script>
+</body>
+</html>

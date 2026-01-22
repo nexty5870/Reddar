@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Usage - Reddar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        'brand': {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+        }
+        
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-color), transparent);
+        }
+        
+        /* Logo dot with glow */
+        .logo-dot {
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.5), 0 0 4px rgba(16, 185, 129, 0.8);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.5), 0 0 4px rgba(16, 185, 129, 0.8); }
+            50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.7), 0 0 8px rgba(16, 185, 129, 1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen antialiased">
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 max-w-6xl">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <a href="/" class="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors">
+                        <span class="iconify text-xl" data-icon="solar:arrow-left-linear"></span>
+                        <div class="logo-dot"></div>
+                        <span class="text-lg font-semibold text-slate-900 tracking-tight">Reddar</span>
+                    </a>
+                </div>
+                <div id="connection-status" class="flex items-center gap-2 text-sm text-slate-400">
+                    <span class="w-2 h-2 rounded-full bg-slate-200"></span>
+                    Loading...
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 max-w-6xl">
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+            <div class="card rounded-lg p-5 stat-card" style="--accent-color: #0f172a;">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="iconify text-slate-700" data-icon="solar:chat-round-dots-bold-duotone"></span>
+                </div>
+                <div id="total-requests" class="text-3xl font-bold text-slate-900 mono">-</div>
+                <div class="text-sm text-slate-500">Requests</div>
+            </div>
+            <div class="card rounded-lg p-5 stat-card" style="--accent-color: #0ea5e9;">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="iconify text-sky-500" data-icon="solar:cpu-bolt-bold-duotone"></span>
+                </div>
+                <div id="total-tokens" class="text-3xl font-bold text-sky-600 mono">-</div>
+                <div class="text-sm text-slate-500">Total Tokens</div>
+            </div>
+            <div class="card rounded-lg p-5 stat-card" style="--accent-color: #06b6d4;">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="iconify text-cyan-500" data-icon="solar:arrow-right-up-bold-duotone"></span>
+                </div>
+                <div id="prompt-tokens" class="text-3xl font-bold text-slate-900 mono">-</div>
+                <div class="text-sm text-slate-500">Prompt</div>
+            </div>
+            <div class="card rounded-lg p-5 stat-card" style="--accent-color: #10b981;">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="iconify text-emerald-500" data-icon="solar:arrow-left-down-bold-duotone"></span>
+                </div>
+                <div id="completion-tokens" class="text-3xl font-bold text-slate-900 mono">-</div>
+                <div class="text-sm text-slate-500">Completion</div>
+            </div>
+            <div class="card rounded-lg p-5 stat-card" style="--accent-color: #f59e0b;">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="iconify text-amber-500" data-icon="solar:stopwatch-bold-duotone"></span>
+                </div>
+                <div id="avg-latency" class="text-3xl font-bold text-slate-900 mono">-</div>
+                <div class="text-sm text-slate-500">Avg Latency</div>
+            </div>
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <div class="card rounded-lg p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="iconify text-slate-400" data-icon="solar:chart-2-bold-duotone"></span>
+                    <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Token Usage</h2>
+                </div>
+                <div class="h-64">
+                    <canvas id="tokensChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card rounded-lg p-6">
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="iconify text-slate-400" data-icon="solar:graph-up-bold-duotone"></span>
+                    <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Latency</h2>
+                </div>
+                <div class="h-64">
+                    <canvas id="latencyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Token Breakdown -->
+        <div class="card rounded-lg p-6 mb-8">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="iconify text-slate-400" data-icon="solar:pie-chart-2-bold-duotone"></span>
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Token Breakdown</h2>
+            </div>
+            <div class="grid md:grid-cols-3 gap-6">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-sm text-slate-500">Prompt vs Completion</span>
+                        <span id="ratio" class="text-sm font-semibold text-slate-900 mono">-</span>
+                    </div>
+                    <div class="h-3 bg-slate-100 rounded-full overflow-hidden flex">
+                        <div id="prompt-bar" class="h-full bg-sky-500 transition-all" style="width: 50%"></div>
+                        <div id="completion-bar" class="h-full bg-emerald-500 transition-all" style="width: 50%"></div>
+                    </div>
+                    <div class="flex justify-between mt-2 text-xs text-slate-400">
+                        <span class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-sky-500"></span> Prompt
+                        </span>
+                        <span class="flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Completion
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <div class="text-sm text-slate-500 mb-2">Avg Tokens/Request</div>
+                    <div id="avg-tokens" class="text-2xl font-bold text-slate-900 mono">-</div>
+                </div>
+                <div>
+                    <div class="text-sm text-slate-500 mb-2">Estimated Cost (@ $0.15/1M)</div>
+                    <div id="estimated-cost" class="text-2xl font-bold text-emerald-600 mono">$0.00</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Request History -->
+        <div class="card rounded-lg p-6">
+            <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center gap-2">
+                    <span class="iconify text-slate-400" data-icon="solar:history-bold-duotone"></span>
+                    <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Request History</h2>
+                </div>
+                <span id="request-count" class="text-sm text-slate-400">0 requests</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead>
+                        <tr class="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-100">
+                            <th class="text-left py-3 px-3 font-medium">#</th>
+                            <th class="text-left py-3 px-3 font-medium">Timestamp</th>
+                            <th class="text-left py-3 px-3 font-medium">Model</th>
+                            <th class="text-right py-3 px-3 font-medium">Prompt</th>
+                            <th class="text-right py-3 px-3 font-medium">Completion</th>
+                            <th class="text-right py-3 px-3 font-medium">Total</th>
+                            <th class="text-right py-3 px-3 font-medium">Latency</th>
+                        </tr>
+                    </thead>
+                    <tbody id="request-table" class="text-slate-600">
+                        <tr><td colspan="7" class="text-center py-8 text-slate-400">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Drill-down Modal -->
+    <div id="modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 overflow-y-auto">
+        <div class="min-h-screen px-4 py-8 flex items-start justify-center">
+            <div class="bg-white rounded-lg shadow-2xl w-full max-w-5xl relative">
+                <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
+                    <div>
+                        <h3 class="text-lg font-semibold text-slate-900">Request Details</h3>
+                        <p id="modal-meta" class="text-sm text-slate-500 mt-0.5">-</p>
+                    </div>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-900 transition-colors p-2">
+                        <span class="iconify text-xl" data-icon="solar:close-circle-bold"></span>
+                    </button>
+                </div>
+                
+                <div class="p-6 space-y-6">
+                    <div class="grid grid-cols-4 gap-4">
+                        <div class="bg-sky-50 rounded-lg p-4 text-center">
+                            <div id="modal-prompt-tokens" class="text-xl font-bold text-sky-600 mono">-</div>
+                            <div class="text-xs text-sky-600/60">Prompt</div>
+                        </div>
+                        <div class="bg-emerald-50 rounded-lg p-4 text-center">
+                            <div id="modal-completion-tokens" class="text-xl font-bold text-emerald-600 mono">-</div>
+                            <div class="text-xs text-emerald-600/60">Completion</div>
+                        </div>
+                        <div class="bg-slate-100 rounded-lg p-4 text-center">
+                            <div id="modal-total-tokens" class="text-xl font-bold text-slate-900 mono">-</div>
+                            <div class="text-xs text-slate-400">Total</div>
+                        </div>
+                        <div class="bg-amber-50 rounded-lg p-4 text-center">
+                            <div id="modal-latency" class="text-xl font-bold text-amber-600 mono">-</div>
+                            <div class="text-xs text-amber-600/60">Latency</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="iconify text-emerald-500" data-icon="solar:arrow-right-up-bold"></span>
+                                <h4 class="text-sm font-semibold text-slate-700">Prompt</h4>
+                            </div>
+                            <button onclick="copyToClipboard('modal-messages-content')" class="text-xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-1">
+                                <span class="iconify" data-icon="solar:copy-bold"></span> Copy
+                            </button>
+                        </div>
+                        <div id="modal-messages" class="bg-slate-50 border border-slate-200 rounded-lg p-4 max-h-80 overflow-y-auto">
+                            <pre id="modal-messages-content" class="text-sm text-slate-600 whitespace-pre-wrap mono">-</pre>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="iconify text-emerald-500" data-icon="solar:arrow-left-down-bold"></span>
+                                <h4 class="text-sm font-semibold text-slate-700">Response</h4>
+                            </div>
+                            <button onclick="copyToClipboard('modal-response-content')" class="text-xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-1">
+                                <span class="iconify" data-icon="solar:copy-bold"></span> Copy
+                            </button>
+                        </div>
+                        <div id="modal-response" class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 max-h-96 overflow-y-auto">
+                            <pre id="modal-response-content" class="text-sm text-slate-600 whitespace-pre-wrap mono">-</pre>
+                        </div>
+                    </div>
+
+                    <div id="modal-reasoning-section" class="hidden">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-2">
+                                <span class="iconify text-amber-500" data-icon="solar:brain-bold"></span>
+                                <h4 class="text-sm font-semibold text-slate-700">Reasoning</h4>
+                            </div>
+                            <button onclick="copyToClipboard('modal-reasoning-content')" class="text-xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-1">
+                                <span class="iconify" data-icon="solar:copy-bold"></span> Copy
+                            </button>
+                        </div>
+                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 max-h-64 overflow-y-auto">
+                            <pre id="modal-reasoning-content" class="text-sm text-slate-600 whitespace-pre-wrap mono">-</pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let tokensChart, latencyChart;
+
+        function formatNumber(num) {
+            if (num === null || num === undefined || num === '-') return '-';
+            if (num >= 1000000) return (num / 1000000).toFixed(2) + 'M';
+            if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
+            return num.toLocaleString();
+        }
+
+        function formatDate(timestamp) {
+            if (!timestamp) return '-';
+            const date = new Date(timestamp);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + 
+                   ' ' + date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function formatLatency(ms) {
+            if (!ms) return '-';
+            if (ms >= 60000) return (ms / 60000).toFixed(1) + 'm';
+            if (ms >= 1000) return (ms / 1000).toFixed(1) + 's';
+            return ms + 'ms';
+        }
+
+        function initCharts() {
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } },
+                    y: { grid: { color: '#f4f4f5' }, ticks: { font: { size: 10 } } }
+                }
+            };
+
+            tokensChart = new Chart(document.getElementById('tokensChart'), {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        { label: 'Prompt', data: [], backgroundColor: '#0ea5e9', borderRadius: 4 },
+                        { label: 'Completion', data: [], backgroundColor: '#10b981', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    ...chartOptions,
+                    plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
+                    scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, stacked: true }, y: { ...chartOptions.scales.y, stacked: true } }
+                }
+            });
+
+            latencyChart = new Chart(document.getElementById('latencyChart'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Latency (s)',
+                        data: [],
+                        borderColor: '#f59e0b',
+                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#f59e0b',
+                    }]
+                },
+                options: chartOptions
+            });
+        }
+
+        function updateCharts(requests) {
+            const reversed = [...requests].reverse();
+            const labels = reversed.map((r, i) => `#${reversed.length - i}`);
+            
+            tokensChart.data.labels = labels;
+            tokensChart.data.datasets[0].data = reversed.map(r => r.prompt_tokens || 0);
+            tokensChart.data.datasets[1].data = reversed.map(r => r.completion_tokens || 0);
+            tokensChart.update();
+
+            latencyChart.data.labels = labels;
+            latencyChart.data.datasets[0].data = reversed.map(r => (r.latency_ms || 0) / 1000);
+            latencyChart.update();
+        }
+
+        function updateUI(data) {
+            const statusEl = document.getElementById('connection-status');
+            statusEl.innerHTML = data.connected 
+                ? '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span class="text-emerald-600">Connected</span>'
+                : '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-amber-600">Disconnected</span>';
+
+            document.getElementById('total-requests').textContent = formatNumber(data.total_requests);
+            document.getElementById('total-tokens').textContent = formatNumber(data.total_tokens);
+            document.getElementById('prompt-tokens').textContent = formatNumber(data.prompt_tokens);
+            document.getElementById('completion-tokens').textContent = formatNumber(data.completion_tokens);
+            document.getElementById('avg-latency').textContent = formatLatency(data.avg_latency_ms);
+
+            const promptPct = data.total_tokens > 0 ? (data.prompt_tokens / data.total_tokens) * 100 : 50;
+            document.getElementById('prompt-bar').style.width = promptPct + '%';
+            document.getElementById('completion-bar').style.width = (100 - promptPct) + '%';
+            document.getElementById('ratio').textContent = `${promptPct.toFixed(0)}% / ${(100 - promptPct).toFixed(0)}%`;
+            
+            const avgTokens = data.total_requests > 0 ? Math.round(data.total_tokens / data.total_requests) : 0;
+            document.getElementById('avg-tokens').textContent = formatNumber(avgTokens);
+            
+            const cost = (data.total_tokens / 1000000) * 0.15;
+            document.getElementById('estimated-cost').textContent = '$' + cost.toFixed(4);
+
+            document.getElementById('request-count').textContent = `${data.recent_logs?.length || 0} requests`;
+
+            window.requestLogs = data.recent_logs || [];
+
+            const tbody = document.getElementById('request-table');
+            if (data.recent_logs && data.recent_logs.length > 0) {
+                tbody.innerHTML = data.recent_logs.map((log, i) => `
+                    <tr class="border-b border-slate-100 hover:bg-emerald-50/30 cursor-pointer transition-colors" onclick="openModal(${i})">
+                        <td class="py-3 px-3 text-slate-400 mono">${i + 1}</td>
+                        <td class="py-3 px-3 text-slate-600">${formatDate(log.timestamp)}</td>
+                        <td class="py-3 px-3">
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700">
+                                <span class="iconify text-xs" data-icon="solar:cpu-bolt-bold"></span>
+                                ${log.model || '-'}
+                            </span>
+                        </td>
+                        <td class="py-3 px-3 text-right mono">${formatNumber(log.prompt_tokens)}</td>
+                        <td class="py-3 px-3 text-right mono">${formatNumber(log.completion_tokens)}</td>
+                        <td class="py-3 px-3 text-right font-semibold text-slate-900 mono">${formatNumber(log.total_tokens)}</td>
+                        <td class="py-3 px-3 text-right text-slate-500 mono">${formatLatency(log.latency_ms)}</td>
+                    </tr>
+                `).join('');
+
+                updateCharts(data.recent_logs);
+            } else {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">No requests yet</td></tr>`;
+            }
+        }
+
+        function openModal(index) {
+            const log = window.requestLogs[index];
+            if (!log) return;
+
+            document.getElementById('modal-meta').textContent = `${log.model || 'Unknown model'} - ${formatDate(log.timestamp)}`;
+
+            document.getElementById('modal-prompt-tokens').textContent = formatNumber(log.prompt_tokens);
+            document.getElementById('modal-completion-tokens').textContent = formatNumber(log.completion_tokens);
+            document.getElementById('modal-total-tokens').textContent = formatNumber(log.total_tokens);
+            document.getElementById('modal-latency').textContent = formatLatency(log.latency_ms);
+
+            let messagesText = '';
+            if (log.messages && log.messages.length > 0) {
+                messagesText = log.messages.map(m => `[${m.role.toUpperCase()}]\n${m.content || ''}`).join('\n\n---\n\n');
+            } else {
+                messagesText = '(No prompt data available)';
+            }
+            document.getElementById('modal-messages-content').textContent = messagesText;
+
+            document.getElementById('modal-response-content').textContent = log.response || '(No response data available)';
+
+            const reasoningSection = document.getElementById('modal-reasoning-section');
+            if (log.reasoning && log.reasoning.trim()) {
+                document.getElementById('modal-reasoning-content').textContent = log.reasoning;
+                reasoningSection.classList.remove('hidden');
+            } else {
+                reasoningSection.classList.add('hidden');
+            }
+
+            document.getElementById('modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        function copyToClipboard(elementId) {
+            navigator.clipboard.writeText(document.getElementById(elementId).textContent);
+        }
+
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+        document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
+
+        async function fetchUsage() {
+            try {
+                const response = await fetch('/api/token-usage');
+                const data = await response.json();
+                updateUI(data);
+            } catch (error) {
+                updateUI({ connected: false });
+            }
+        }
+
+        initCharts();
+        fetchUsage();
+        setInterval(fetchUsage, 5000);
+    </script>
+</body>
+</html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Run Agent - Reddar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        'brand': {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            400: '#4ade80',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', system-ui, sans-serif; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        .btn-primary {
+            background: #0f172a;
+        }
+        .btn-primary:hover {
+            background: #1e293b;
+        }
+        .btn-primary:disabled {
+            background: #e2e8f0;
+            color: #94a3b8;
+        }
+        
+        .card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+        }
+        
+        .focus-card {
+            background: white;
+            border: 2px solid #e2e8f0;
+            transition: all 0.2s ease;
+        }
+        .focus-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        }
+        .focus-card.selected {
+            border-color: #0f172a;
+            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+        }
+        
+        .terminal {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+        }
+        
+        .terminal-line {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse-cursor {
+            animation: blink 1s infinite;
+        }
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #0f172a, #334155, #0f172a);
+            background-size: 200% 100%;
+            animation: shimmer 2s linear infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .stat-pill {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+        }
+        
+        /* Logo dot with glow */
+        .logo-dot {
+            width: 10px;
+            height: 10px;
+            background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.5), 0 0 4px rgba(16, 185, 129, 0.8);
+            animation: pulse-glow 2s ease-in-out infinite;
+        }
+        @keyframes pulse-glow {
+            0%, 100% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.5), 0 0 4px rgba(16, 185, 129, 0.8); }
+            50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.7), 0 0 8px rgba(16, 185, 129, 1); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen antialiased">
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 max-w-5xl">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-4">
+                    <a href="/" class="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors">
+                        <span class="iconify text-xl" data-icon="solar:arrow-left-linear"></span>
+                        <div class="logo-dot"></div>
+                        <span class="text-lg font-semibold text-slate-900 tracking-tight">Reddar</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-8 max-w-5xl">
+        <!-- Focus Area Selection -->
+        <div id="setup-panel" class="mb-8">
+            <div class="flex items-center gap-2 mb-4">
+                <span class="iconify text-slate-400" data-icon="solar:target-bold-duotone"></span>
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Select Focus Area</h2>
+            </div>
+            <div class="grid gap-4 md:grid-cols-2">
+                {% for id, area in focus_areas.items() %}
+                <button onclick="selectFocus('{{ id }}')" 
+                        id="btn-{{ id }}"
+                        class="focus-card rounded-lg p-5 text-left">
+                    <div class="flex items-start gap-3">
+                        <div class="w-10 h-10 rounded-lg {% if area.mode == 'news' %}bg-sky-50{% else %}bg-emerald-50{% endif %} flex items-center justify-center flex-shrink-0">
+                            {% if area.mode == 'news' %}
+                            <span class="iconify text-sky-500 text-xl" data-icon="solar:global-bold-duotone"></span>
+                            {% else %}
+                            <span class="iconify text-emerald-500 text-xl" data-icon="solar:dollar-bold-duotone"></span>
+                            {% endif %}
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-base font-semibold text-slate-900 mb-1">{{ area.name }}</h3>
+                            <p class="text-sm text-slate-500 mb-3">{{ area.description }}</p>
+                            <div class="flex flex-wrap gap-1.5">
+                                {% for sub in area.subreddits[:3] %}
+                                <span class="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">r/{{ sub }}</span>
+                                {% endfor %}
+                                {% if area.subreddits | length > 3 %}
+                                <span class="text-xs text-slate-400">+{{ area.subreddits | length - 3 }} more</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </button>
+                {% endfor %}
+            </div>
+            
+            <div class="mt-6 flex justify-center">
+                <button onclick="startAgent()" 
+                        id="start-btn"
+                        disabled
+                        class="btn-primary text-white px-8 py-3 rounded-lg font-medium transition-all flex items-center gap-2">
+                    <span class="iconify" data-icon="solar:play-bold"></span>
+                    <span id="start-btn-text">Select a focus area</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Progress Panel -->
+        <div id="progress-panel" class="hidden mb-8">
+            <div class="card rounded-lg p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-base font-semibold text-slate-900 flex items-center gap-3">
+                        <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse"></span>
+                        <span id="status-text">Initializing...</span>
+                    </h2>
+                    <span id="elapsed-time" class="text-sm text-slate-400 mono">00:00</span>
+                </div>
+                
+                <!-- Progress Steps -->
+                <div class="flex gap-2 mb-4">
+                    <div id="step-1" class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                        <div class="h-full w-0 progress-bar transition-all duration-500"></div>
+                    </div>
+                    <div id="step-2" class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                        <div class="h-full w-0 progress-bar transition-all duration-500"></div>
+                    </div>
+                    <div id="step-3" class="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                        <div class="h-full w-0 progress-bar transition-all duration-500"></div>
+                    </div>
+                </div>
+                
+                <div class="text-xs text-slate-400 mb-6 flex justify-between">
+                    <span>Scraping</span>
+                    <span>Analyzing</span>
+                    <span>Complete</span>
+                </div>
+                
+                <!-- Live Stats -->
+                <div class="flex flex-wrap gap-3">
+                    <div class="stat-pill rounded-md px-4 py-2 flex items-center gap-2">
+                        <span class="iconify text-slate-400" data-icon="solar:document-text-bold"></span>
+                        <span id="stat-posts" class="text-sm font-semibold text-slate-900 mono">0</span>
+                        <span class="text-xs text-slate-400">posts</span>
+                    </div>
+                    <div class="stat-pill rounded-md px-4 py-2 flex items-center gap-2">
+                        <span class="iconify text-slate-400" data-icon="solar:users-group-rounded-bold"></span>
+                        <span id="stat-subs" class="text-sm font-semibold text-slate-900 mono">0</span>
+                        <span class="text-xs text-slate-400">subreddits</span>
+                    </div>
+                    <div class="stat-pill rounded-md px-4 py-2 flex items-center gap-2">
+                        <span class="iconify text-emerald-500" data-icon="solar:cpu-bolt-bold"></span>
+                        <span id="stat-tokens" class="text-sm font-semibold text-emerald-600 mono">0</span>
+                        <span class="text-xs text-slate-400">tokens</span>
+                    </div>
+                    <div class="stat-pill rounded-md px-4 py-2 flex items-center gap-2">
+                        <span class="iconify text-emerald-500" data-icon="solar:lightbulb-bolt-bold"></span>
+                        <span id="stat-opps" class="text-sm font-semibold text-emerald-600 mono">-</span>
+                        <span id="stat-opps-label" class="text-xs text-slate-400">findings</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terminal Output -->
+        <div id="terminal-panel" class="hidden">
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex items-center gap-2">
+                    <span class="iconify text-slate-400" data-icon="solar:code-square-bold-duotone"></span>
+                    <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Live Output</h2>
+                </div>
+                <button onclick="toggleTerminal()" class="text-sm text-slate-400 hover:text-slate-900 transition-colors">
+                    <span id="terminal-toggle">Collapse</span>
+                </button>
+            </div>
+            <div id="terminal" class="terminal rounded-lg p-4 h-72 overflow-y-auto mono text-sm text-gray-300">
+                <div id="terminal-content"></div>
+                <span class="pulse-cursor text-emerald-400">_</span>
+            </div>
+        </div>
+
+        <!-- Results Panel -->
+        <div id="results-panel" class="hidden mt-8">
+            <div class="card rounded-lg p-8 text-center border-2 border-emerald-200 bg-gradient-to-b from-emerald-50/50">
+                <div class="w-16 h-16 rounded-lg bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                    <span class="iconify text-emerald-600 text-3xl" data-icon="solar:check-circle-bold-duotone"></span>
+                </div>
+                <h2 class="text-xl font-bold text-slate-900 mb-2">Analysis Complete</h2>
+                <p class="text-slate-500 mb-6" id="results-summary">Found opportunities in the data</p>
+                <a id="view-report-btn" href="#" class="btn-primary inline-flex items-center gap-2 text-white px-8 py-3 rounded-lg font-medium transition-all">
+                    <span class="iconify" data-icon="solar:document-text-bold"></span>
+                    View Full Report
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let selectedFocus = null;
+        let startTime = null;
+        let timerInterval = null;
+        let eventSource = null;
+
+        function selectFocus(focusId) {
+            document.querySelectorAll('.focus-card').forEach(btn => btn.classList.remove('selected'));
+            document.getElementById(`btn-${focusId}`).classList.add('selected');
+            selectedFocus = focusId;
+            
+            const startBtn = document.getElementById('start-btn');
+            startBtn.disabled = false;
+            document.getElementById('start-btn-text').textContent = 'Start Scanning';
+        }
+
+        function startAgent() {
+            if (!selectedFocus) return;
+            
+            document.getElementById('setup-panel').classList.add('hidden');
+            document.getElementById('progress-panel').classList.remove('hidden');
+            document.getElementById('terminal-panel').classList.remove('hidden');
+            
+            startTime = Date.now();
+            timerInterval = setInterval(updateTimer, 1000);
+            
+            eventSource = new EventSource(`/api/run/${selectedFocus}`);
+            
+            eventSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                handleEvent(data);
+            };
+            
+            eventSource.onerror = () => {
+                eventSource.close();
+                addTerminalLine('Connection closed', 'error');
+            };
+        }
+
+        function handleEvent(data) {
+            switch(data.type) {
+                case 'log':
+                    addTerminalLine(data.message, data.level || 'info');
+                    break;
+                    
+                case 'progress':
+                    updateProgress(data.step, data.percent);
+                    document.getElementById('status-text').textContent = data.status || 'Processing...';
+                    break;
+                    
+                case 'stats':
+                    if (data.posts !== undefined) document.getElementById('stat-posts').textContent = data.posts;
+                    if (data.subreddits !== undefined) document.getElementById('stat-subs').textContent = data.subreddits;
+                    if (data.tokens !== undefined) document.getElementById('stat-tokens').textContent = data.tokens.toLocaleString();
+                    if (data.opportunities !== undefined) document.getElementById('stat-opps').textContent = data.opportunities;
+                    break;
+                    
+                case 'complete':
+                    clearInterval(timerInterval);
+                    document.getElementById('status-dot').className = 'w-2.5 h-2.5 rounded-full bg-emerald-500';
+                    document.getElementById('status-text').textContent = 'Complete';
+                    
+                    document.getElementById('results-panel').classList.remove('hidden');
+                    
+                    // Handle different modes
+                    if (data.mode === 'news') {
+                        document.getElementById('results-summary').textContent = 
+                            `Found ${data.opportunities} stories and ${data.pain_points} releases from ${data.posts} posts`;
+                    } else {
+                        document.getElementById('results-summary').textContent = 
+                            `Found ${data.opportunities} opportunities and ${data.pain_points} pain points from ${data.posts} posts`;
+                    }
+                    document.getElementById('view-report-btn').href = `/report/${data.report_id}`;
+                    
+                    eventSource.close();
+                    break;
+                    
+                case 'error':
+                    addTerminalLine(`ERROR: ${data.message}`, 'error');
+                    document.getElementById('status-dot').className = 'w-2.5 h-2.5 rounded-full bg-red-500';
+                    document.getElementById('status-text').textContent = 'Error';
+                    clearInterval(timerInterval);
+                    eventSource.close();
+                    break;
+            }
+        }
+
+        function addTerminalLine(text, level = 'info') {
+            const content = document.getElementById('terminal-content');
+            const line = document.createElement('div');
+            line.className = 'terminal-line mb-1';
+            
+            const colors = {
+                'info': 'text-gray-400',
+                'success': 'text-emerald-400',
+                'warning': 'text-amber-400',
+                'error': 'text-red-400',
+                'highlight': 'text-sky-400',
+            };
+            
+            line.innerHTML = `<span class="${colors[level] || colors.info}">${text}</span>`;
+            content.appendChild(line);
+            
+            const terminal = document.getElementById('terminal');
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        function updateProgress(step, percent) {
+            for (let i = 1; i <= 3; i++) {
+                const bar = document.querySelector(`#step-${i} > div`);
+                if (i < step) {
+                    bar.style.width = '100%';
+                } else if (i === step) {
+                    bar.style.width = `${percent}%`;
+                } else {
+                    bar.style.width = '0%';
+                }
+            }
+        }
+
+        function updateTimer() {
+            const elapsed = Math.floor((Date.now() - startTime) / 1000);
+            const mins = Math.floor(elapsed / 60).toString().padStart(2, '0');
+            const secs = (elapsed % 60).toString().padStart(2, '0');
+            document.getElementById('elapsed-time').textContent = `${mins}:${secs}`;
+        }
+
+        function toggleTerminal() {
+            const terminal = document.getElementById('terminal');
+            const toggle = document.getElementById('terminal-toggle');
+            if (terminal.style.height === '0px') {
+                terminal.style.height = '18rem';
+                toggle.textContent = 'Collapse';
+            } else {
+                terminal.style.height = '0px';
+                toggle.textContent = 'Expand';
+            }
+        }
+    </script>
+</body>
+</html>
