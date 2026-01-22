@@ -87,9 +87,14 @@ def index():
     reports = get_reports()
     config = load_config()
     focus_areas = config.get("focus_areas", {})
+    llm_config = config.get("llm", {})
+    llm_info = {
+        "provider": llm_config.get("provider", "openai-compatible"),
+        "model": llm_config.get("model", "default"),
+    }
 
     return render_template(
-        "index.html", reports=reports, focus_areas=focus_areas, total_reports=len(reports)
+        "index.html", reports=reports, focus_areas=focus_areas, total_reports=len(reports), llm=llm_info
     )
 
 
@@ -420,10 +425,11 @@ def api_run_agent(focus_area: str):
                 }
             else:
                 # Small dataset - single analysis
+                model_name = config.get("llm", {}).get("model", "LLM")
                 yield sse(
                     {
                         "type": "log",
-                        "message": "Sending to GLM-4.7-Flash for analysis...",
+                        "message": f"Sending to {model_name} for analysis...",
                         "level": "highlight",
                     }
                 )

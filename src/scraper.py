@@ -1,6 +1,7 @@
 """Reddit Scraper - Fetches posts and comments from subreddits."""
 
 import json
+import random
 import time
 import httpx
 from datetime import datetime, timezone
@@ -9,11 +10,66 @@ from typing import Optional
 import yaml
 
 
+# Rate limiting defaults
+DEFAULT_DELAY_BETWEEN_REQUESTS = 3.0  # seconds
+DEFAULT_DELAY_BETWEEN_SUBREDDITS = 6.0  # seconds
+MAX_RETRIES = 3
+BACKOFF_FACTOR = 2  # exponential backoff multiplier
+
+
 def load_config() -> dict:
     """Load configuration from config.yaml."""
     config_path = Path(__file__).parent.parent / "config.yaml"
     with open(config_path) as f:
         return yaml.safe_load(f)
+
+
+def rate_limit_delay(base_delay: float = DEFAULT_DELAY_BETWEEN_REQUESTS) -> None:
+    """Sleep with jitter to avoid predictable request patterns."""
+    jitter = random.uniform(0.5, 1.5)
+    time.sleep(base_delay * jitter)
+
+
+def fetch_with_retry(
+    url: str,
+    headers: dict,
+    params: dict,
+    max_retries: int = MAX_RETRIES,
+) -> Optional[dict]:
+    """Fetch URL with exponential backoff retry on rate limits."""
+
+    for attempt in range(max_retries + 1):
+        try:
+            response = httpx.get(url, headers=headers, params=params, timeout=30, follow_redirects=True)
+
+            # Handle rate limiting
+            if response.status_code == 429:
+                if attempt < max_retries:
+                    # Exponential backoff with jitter
+                    wait_time = (BACKOFF_FACTOR ** attempt) * 10 + random.uniform(1, 5)
+                    print(f"  Rate limited (429). Waiting {wait_time:.1f}s before retry {attempt + 1}/{max_retries}...")
+                    time.sleep(wait_time)
+                    continue
+                else:
+                    print(f"  Rate limited (429). Max retries exceeded, skipping.")
+                    return None
+
+            response.raise_for_status()
+            return response.json()
+
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 429 and attempt < max_retries:
+                wait_time = (BACKOFF_FACTOR ** attempt) * 10 + random.uniform(1, 5)
+                print(f"  Rate limited (429). Waiting {wait_time:.1f}s before retry {attempt + 1}/{max_retries}...")
+                time.sleep(wait_time)
+                continue
+            print(f"  HTTP error: {e}")
+            return None
+        except Exception as e:
+            print(f"  Error: {e}")
+            return None
+
+    return None
 
 
 def fetch_subreddit(
@@ -25,12 +81,9 @@ def fetch_subreddit(
     headers = {"User-Agent": user_agent}
     params = {"limit": min(limit * 2, 100)}  # Fetch extra to filter
 
-    try:
-        response = httpx.get(url, headers=headers, params=params, timeout=30, follow_redirects=True)
-        response.raise_for_status()
-        data = response.json()
-    except Exception as e:
-        print(f"Error fetching r/{subreddit}: {e}")
+    data = fetch_with_retry(url, headers, params)
+    if data is None:
+        print(f"  Failed to fetch r/{subreddit}")
         return []
 
     posts = []
@@ -78,16 +131,12 @@ def fetch_comments(
     headers = {"User-Agent": user_agent}
     params = {"limit": max_comments, "sort": "top"}
 
-    try:
-        response = httpx.get(url, headers=headers, params=params, timeout=30, follow_redirects=True)
-        response.raise_for_status()
-        data = response.json()
-    except Exception as e:
-        print(f"Error fetching comments for {post_id}: {e}")
+    data = fetch_with_retry(url, headers, params)
+    if data is None:
         return []
 
     comments = []
-    if len(data) > 1:
+    if isinstance(data, list) and len(data) > 1:
         for child in data[1].get("data", {}).get("children", [])[:max_comments]:
             if child.get("kind") != "t1":
                 continue
@@ -120,26 +169,33 @@ def scrape_focus_area(focus_area: str, config: Optional[dict] = None) -> dict:
     include_comments = scraper_config.get("include_comments", True)
     max_comments = scraper_config.get("max_comments_per_post", 10)
     min_upvotes = scraper_config.get("min_upvotes", 5)
+    delay_between_requests = scraper_config.get("delay_between_requests", DEFAULT_DELAY_BETWEEN_REQUESTS)
+    delay_between_subreddits = scraper_config.get("delay_between_subreddits", DEFAULT_DELAY_BETWEEN_SUBREDDITS)
 
     all_posts = []
+    total_subreddits = len(focus_config["subreddits"])
 
-    for subreddit in focus_config["subreddits"]:
-        print(f"Scraping r/{subreddit}...")
+    for idx, subreddit in enumerate(focus_config["subreddits"], 1):
+        print(f"Scraping r/{subreddit}... ({idx}/{total_subreddits})")
         posts = fetch_subreddit(
             subreddit, limit=posts_per_sub, min_upvotes=min_upvotes, user_agent=user_agent
         )
 
-        if include_comments:
+        if include_comments and posts:
+            print(f"  Fetching comments for {len(posts)} posts...")
             for post in posts:
-                # Rate limit to avoid Reddit blocking (increased due to 429s)
-                time.sleep(2)
+                # Rate limit between comment fetches
+                rate_limit_delay(delay_between_requests)
                 post["comments"] = fetch_comments(
                     subreddit, post["id"], max_comments=max_comments, user_agent=user_agent
                 )
 
         all_posts.extend(posts)
-        # Rate limit between subreddits
-        time.sleep(3)
+        print(f"  Got {len(posts)} posts from r/{subreddit}")
+
+        # Rate limit between subreddits (longer delay)
+        if idx < total_subreddits:
+            rate_limit_delay(delay_between_subreddits)
 
     result = {
         "focus_area": focus_area,
