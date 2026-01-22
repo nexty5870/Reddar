@@ -4,6 +4,8 @@
 
 Reddar scrapes Reddit, analyzes posts with a local LLM, and presents actionable insights through a clean web dashboard.
 
+## This is a Fork of: https://github.com/nexty5870/Reddar
+
 ## Features
 
 - **Multi-mode Analysis**: Opportunity discovery or news/intel gathering
