@@ -179,11 +179,10 @@ All commands go through `start.sh`, which handles venv detection and LLM validat
 ./start.sh
 
 # Run specific focus area + dashboard
-./start.sh dev_tools
 ./start.sh ai_opensource_news
 
 # Run agent only (no dashboard)
-./start.sh agent ai_ml
+./start.sh agent saas_opportunities
 
 # Run all focus areas
 ./start.sh all

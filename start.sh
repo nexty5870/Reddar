@@ -111,8 +111,13 @@ check_model() {
         if curl -s "$ollama_api" 2>/dev/null | grep -q "models"; then
             echo -e "${GREEN}  Ollama is running${NC}"
 
-            # Check if specific model is available
-            if curl -s "$ollama_api" 2>/dev/null | grep -q "\"name\":\"${model}\""; then
+            # Check if specific model is available using proper JSON parsing
+            if curl -s "$ollama_api" 2>/dev/null | $PYTHON -c "
+import sys, json
+data = json.load(sys.stdin)
+models = [m['name'].split(':')[0] for m in data.get('models', [])]
+sys.exit(0 if '${model}'.split(':')[0] in models else 1)
+" 2>/dev/null; then
                 echo -e "${GREEN}  Model '${model}' is available${NC}"
                 return 0
             else
@@ -293,7 +298,18 @@ case "${1:-}" in
         # Run all focus areas then start dashboard
         check_model || exit 1
 
-        for focus in saas_opportunities dev_tools ai_ml; do
+        # Get all focus areas from config
+        for focus in $($PYTHON -c "
+import yaml
+from pathlib import Path
+config_path = Path('$SCRIPT_DIR/config.yaml')
+if config_path.exists():
+    with open(config_path) as f:
+        config = yaml.safe_load(f)
+    print(' '.join(config.get('focus_areas', {}).keys()))
+else:
+    print('saas_opportunities')
+"); do
             run_agent "$focus"
             echo ""
             sleep 5  # Rate limit between runs
@@ -369,16 +385,16 @@ case "${1:-}" in
         echo "  reset-usage         Reset token usage stats"
         echo "  install             Install dependencies in venv"
         echo ""
-        echo "Focus areas: saas_opportunities, dev_tools, ai_ml, ai_opensource_news"
+        echo "Focus areas: (run './start.sh list' to see configured focus areas)"
         echo ""
         echo "Examples:"
-        echo "  $0                  # Run saas scan + open dashboard"
-        echo "  $0 dev_tools        # Scan dev_tools + open dashboard"
-        echo "  $0 agent ai_ml      # Just scan ai_ml (no dashboard)"
-        echo "  $0 scrape dev_tools # Just scrape, analyze later"
-        echo "  $0 all              # Scan everything + open dashboard"
-        echo "  $0 web              # Just view existing reports"
-        echo "  $0 install          # Install/update dependencies"
+        echo "  $0                       # Run default focus area + open dashboard"
+        echo "  $0 ai_opensource_news    # Scan specific focus area + dashboard"
+        echo "  $0 agent saas_opportunities  # Just scan (no dashboard)"
+        echo "  $0 scrape saas_opportunities # Just scrape, analyze later"
+        echo "  $0 all                   # Scan all focus areas + open dashboard"
+        echo "  $0 web                   # Just view existing reports"
+        echo "  $0 install               # Install/update dependencies"
         ;;
 
     *)

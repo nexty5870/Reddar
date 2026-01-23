@@ -58,11 +58,6 @@ def fetch_with_retry(
             return response.json()
 
         except httpx.HTTPStatusError as e:
-            if e.response.status_code == 429 and attempt < max_retries:
-                wait_time = (BACKOFF_FACTOR ** attempt) * 10 + random.uniform(1, 5)
-                print(f"  Rate limited (429). Waiting {wait_time:.1f}s before retry {attempt + 1}/{max_retries}...")
-                time.sleep(wait_time)
-                continue
             print(f"  HTTP error: {e}")
             return None
         except Exception as e:
