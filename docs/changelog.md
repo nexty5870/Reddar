@@ -1,5 +1,54 @@
 # Changelog
 
+## 2026-01-23: GPT-5 Compatibility & Config Improvements
+
+### GPT-5 Model Support
+
+#### `src/analyzer.py`
+- **GPT-5 compatibility**: Use `max_completion_tokens` instead of `max_tokens` for GPT-5 series models
+- **Temperature fix**: GPT-5 models only support default temperature (1), so temperature parameter is omitted for these models
+- **Better error logging**: Added `HTTPStatusError` handling to show API response body on errors
+
+### Config-Driven Defaults
+
+#### `start.sh`
+- **`default_focus` support**: Now reads `default_focus` from config.yaml instead of hardcoding `saas_opportunities`
+- **Updated all commands**: `agent`, `scrape`, `analyze` now respect `default_focus` when no argument provided
+- **Fixed exit trap**: `stop_all()` now only prints "Stopping dashboard..." when a dashboard was actually started
+
+---
+
+## 2026-01-23: Voice AI Focus Area Expansion
+
+Enhanced voice AI coverage with new subreddits and keywords for tracking voice AI products and discussions.
+
+### Changes
+
+#### `config.yaml`
+- **User-Agent fix**: Changed from `"RedditIntel/1.0 (Research Bot)"` to Chrome browser User-Agent to fix 403 Forbidden errors from Reddit's bot detection
+- **New subreddits** added to `voice_ai` and `voice_ai_news`:
+  - `elevenlabs` (21k members) - ElevenLabs voice AI community
+  - `grok` (142k members) - xAI Grok with voice mode
+  - `GeminiAI` (223k members) - Google Gemini including Gemini Live
+- **New keywords** added to both focus areas:
+  - `Vapi` - Voice AI platform
+  - `Retell` - Retell AI voice agents
+  - `Ultravox` - Fixie's real-time voice model
+  - `Gemini Live` - Google's live voice AI
+  - `OpenAI Realtime` - OpenAI's realtime voice API
+  - `Grok voice` - xAI's voice features
+  - `voice mode` - General voice mode discussions
+
+### Products Without Dedicated Subreddits
+
+The following products don't have dedicated subreddits but are now tracked via keywords in existing AI/voice subreddits:
+- Vapi
+- Retell AI
+- Ultravox
+- OpenAI Realtime API
+
+---
+
 ## 2026-01-22: Multi-Provider LLM Support
 
 Added support for multiple LLM backends (Ollama, SGLang, vLLM, OpenAI) with provider-aware configuration.

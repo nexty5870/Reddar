@@ -132,9 +132,14 @@ def call_llm(
     payload = {
         "model": model,
         "messages": messages,
-        "max_tokens": max_tokens,
-        "temperature": temperature,
     }
+
+    # GPT-5 series requires max_completion_tokens and doesn't support custom temperature
+    if model.startswith("gpt-5"):
+        payload["max_completion_tokens"] = max_tokens
+    else:
+        payload["max_tokens"] = max_tokens
+        payload["temperature"] = temperature
 
     if json_mode:
         payload["response_format"] = {"type": "json_object"}
@@ -170,6 +175,10 @@ def call_llm(
 
         return content, reasoning
 
+    except httpx.HTTPStatusError as e:
+        print(f"LLM call failed: {e}")
+        print(f"Response body: {e.response.text}")
+        raise
     except Exception as e:
         print(f"LLM call failed: {e}")
         raise

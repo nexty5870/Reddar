@@ -80,9 +80,12 @@ preset = presets.get(provider, presets['openai-compatible'])
 base_url = llm.get('base_url', preset['base_url'])
 model = llm.get('model', preset.get('default_model', 'default'))
 
+default_focus = config.get('default_focus', 'saas_opportunities')
+
 print(f'provider={provider}')
 print(f'base_url={base_url}')
 print(f'model={model}')
+print(f'default_focus={default_focus}')
 "
 }
 
@@ -156,7 +159,7 @@ for m in data.get('models', []):
 }
 
 run_agent() {
-    local focus="${1:-saas_opportunities}"
+    local focus="${1:-$default_focus}"
 
     echo ""
     echo -e "${YELLOW}Running agent for: $focus${NC}"
@@ -199,10 +202,12 @@ start_dashboard() {
 }
 
 stop_all() {
-    echo ""
-    echo -e "${YELLOW}Stopping dashboard...${NC}"
-    pkill -f "$PYTHON web/app.py" 2>/dev/null || true
-    echo -e "${GREEN}Done${NC}"
+    if [[ -n "${DASHBOARD_PID:-}" ]] && kill -0 "$DASHBOARD_PID" 2>/dev/null; then
+        echo ""
+        echo -e "${YELLOW}Stopping dashboard...${NC}"
+        pkill -f "$PYTHON web/app.py" 2>/dev/null || true
+        echo -e "${GREEN}Done${NC}"
+    fi
 }
 
 show_status() {
@@ -260,12 +265,13 @@ trap stop_all EXIT
 
 # Main
 print_header
+load_config
 
 case "${1:-}" in
     "")
         # Default: check model, run default agent, start dashboard
         check_model || exit 1
-        run_agent "saas_opportunities"
+        run_agent
         start_dashboard
         ;;
 
@@ -273,7 +279,7 @@ case "${1:-}" in
         # Run agent only (no dashboard)
         shift
         check_model || exit 1
-        run_agent "${1:-saas_opportunities}"
+        run_agent "${1:-$default_focus}"
         echo ""
         echo -e "${GREEN}Done! View reports: ./start.sh web${NC}"
         ;;
@@ -317,7 +323,7 @@ case "${1:-}" in
         # Just scrape Reddit, no analysis
         shift
         echo -e "${YELLOW}Scraping only (no analysis)...${NC}"
-        $PYTHON src/scraper.py "${1:-saas_opportunities}"
+        $PYTHON src/scraper.py "${1:-$default_focus}"
         echo -e "${GREEN}Done! Analyze with: ./start.sh analyze${NC}"
         ;;
 
@@ -326,7 +332,7 @@ case "${1:-}" in
         shift
         check_model || exit 1
         echo -e "${YELLOW}Analyzing existing scrape data...${NC}"
-        $PYTHON src/analyzer.py "${1:-saas_opportunities}"
+        $PYTHON src/analyzer.py "${1:-$default_focus}"
         echo -e "${GREEN}Done! View reports: ./start.sh web${NC}"
         ;;
 
