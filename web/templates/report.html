@@ -482,21 +482,284 @@
         </div>
     </main>
 
+    <!-- Floating Chat Button -->
+    <button onclick="openChat('{{ report.id }}', '{{ report.focus_name }}')"
+            class="fixed bottom-6 right-6 w-14 h-14 bg-slate-900 hover:bg-slate-800 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 z-40"
+            title="Chat about this report">
+        <span class="iconify text-2xl" data-icon="solar:chat-round-dots-bold"></span>
+    </button>
+
+    <!-- Chat Slide-Out Panel -->
+    <div id="chat-panel" class="fixed inset-y-0 right-0 w-full md:w-[480px] bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex flex-col">
+        <!-- Header -->
+        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                    <span class="iconify text-emerald-600" data-icon="solar:chat-round-dots-bold"></span>
+                </div>
+                <div>
+                    <h2 class="text-sm font-semibold text-slate-900" id="chat-title">{{ report.focus_name }}</h2>
+                    <p class="text-xs text-slate-400" id="chat-subtitle">Ask questions about this report</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="clearChatHistory()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors" title="Clear history">
+                    <span class="iconify" data-icon="solar:trash-bin-trash-bold"></span>
+                </button>
+                <button onclick="closeChat()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
+                    <span class="iconify text-xl" data-icon="solar:close-circle-bold"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50">
+            <!-- Welcome message -->
+            <div id="chat-welcome" class="text-center py-12">
+                <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                    <span class="iconify text-emerald-600 text-2xl" data-icon="solar:chat-round-dots-bold-duotone"></span>
+                </div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Ask about this report</h3>
+                <p class="text-sm text-slate-500 max-w-xs mx-auto">I can help you understand the opportunities, pain points, and insights from this analysis.</p>
+
+                <!-- Suggested Questions -->
+                <div class="mt-6 space-y-2">
+                    <button onclick="sendSuggestedQuestion('What are the top 3 opportunities?')" class="block w-full text-left px-4 py-3 bg-white rounded-lg border border-slate-200 text-sm text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 transition-all">
+                        What are the top 3 opportunities?
+                    </button>
+                    <button onclick="sendSuggestedQuestion('Which pain points have the highest demand?')" class="block w-full text-left px-4 py-3 bg-white rounded-lg border border-slate-200 text-sm text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 transition-all">
+                        Which pain points have the highest demand?
+                    </button>
+                    <button onclick="sendSuggestedQuestion('Summarize the key market insights')" class="block w-full text-left px-4 py-3 bg-white rounded-lg border border-slate-200 text-sm text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 transition-all">
+                        Summarize the key market insights
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="border-t border-slate-200 p-4 bg-white">
+            <div class="flex gap-3">
+                <input type="text"
+                       id="chat-input"
+                       placeholder="Ask a question about this report..."
+                       class="flex-1 px-4 py-3 rounded-lg border border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none text-sm transition-all"
+                       onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
+                <button onclick="sendMessage()"
+                        id="chat-send-btn"
+                        class="px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium text-sm transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <span class="iconify" data-icon="solar:plain-bold"></span>
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Overlay -->
+    <div id="chat-overlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm hidden z-40" onclick="closeChat()"></div>
+
     <script>
+        // Opportunity toggle functionality
         function toggleOpportunity(index) {
             const content = document.getElementById(`content-${index}`);
             const arrow = document.getElementById(`arrow-${index}`);
             const card = document.getElementById(`opp-${index}`);
-            
+
             content.classList.toggle('open');
             arrow.classList.toggle('rotate-180');
             card.classList.toggle('expanded');
         }
-        
+
         // Expand first opportunity by default
         document.addEventListener('DOMContentLoaded', () => {
             if (document.getElementById('content-1')) {
                 toggleOpportunity(1);
+            }
+        });
+
+        // Chat functionality
+        let currentChatReportId = '{{ report.id }}';
+        let currentChatReportName = '{{ report.focus_name }}';
+        let chatIsLoading = false;
+
+        function openChat(reportId, reportName) {
+            currentChatReportId = reportId;
+            currentChatReportName = reportName;
+
+            document.getElementById('chat-title').textContent = reportName;
+            document.getElementById('chat-subtitle').textContent = 'Ask questions about this report';
+
+            loadChatHistory(reportId);
+
+            document.getElementById('chat-panel').classList.remove('translate-x-full');
+            document.getElementById('chat-overlay').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+
+            setTimeout(() => document.getElementById('chat-input').focus(), 300);
+        }
+
+        function closeChat() {
+            document.getElementById('chat-panel').classList.add('translate-x-full');
+            document.getElementById('chat-overlay').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        async function loadChatHistory(reportId) {
+            const messagesDiv = document.getElementById('chat-messages');
+            const welcomeDiv = document.getElementById('chat-welcome');
+
+            try {
+                const response = await fetch(`/api/chat/${reportId}`);
+                const data = await response.json();
+
+                if (data.messages && data.messages.length > 0) {
+                    welcomeDiv.classList.add('hidden');
+                    messagesDiv.innerHTML = '';
+                    data.messages.forEach(msg => {
+                        const msgEl = document.createElement('div');
+                        msgEl.innerHTML = createMessageHTML(msg);
+                        messagesDiv.appendChild(msgEl.firstElementChild);
+                    });
+                    scrollToBottom();
+                } else {
+                    messagesDiv.innerHTML = '';
+                    welcomeDiv.classList.remove('hidden');
+                    messagesDiv.appendChild(welcomeDiv);
+                }
+            } catch (error) {
+                console.error('Failed to load chat history:', error);
+                messagesDiv.innerHTML = '';
+                welcomeDiv.classList.remove('hidden');
+                messagesDiv.appendChild(welcomeDiv);
+            }
+        }
+
+        function createMessageHTML(msg) {
+            const isUser = msg.role === 'user';
+            const escapedContent = escapeHtml(msg.content);
+            const formattedContent = escapedContent.replace(/\n/g, '<br>');
+            return `
+                <div class="flex ${isUser ? 'justify-end' : 'justify-start'}">
+                    <div class="${isUser ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200'} rounded-lg px-4 py-3 max-w-[85%] shadow-sm">
+                        <p class="text-sm whitespace-pre-wrap">${formattedContent}</p>
+                        <p class="text-xs ${isUser ? 'text-slate-400' : 'text-slate-400'} mt-2">${formatTime(msg.timestamp)}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function formatTime(timestamp) {
+            if (!timestamp) return '';
+            const date = new Date(timestamp);
+            return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        async function sendMessage() {
+            if (chatIsLoading || !currentChatReportId) return;
+
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            input.value = '';
+            chatIsLoading = true;
+
+            const sendBtn = document.getElementById('chat-send-btn');
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<span class="iconify animate-spin" data-icon="solar:spinner-bold"></span> Thinking...';
+
+            document.getElementById('chat-welcome').classList.add('hidden');
+            const messagesDiv = document.getElementById('chat-messages');
+
+            const userMsgDiv = document.createElement('div');
+            userMsgDiv.innerHTML = createMessageHTML({ role: 'user', content: message, timestamp: new Date().toISOString() });
+            messagesDiv.appendChild(userMsgDiv.firstElementChild);
+
+            const loadingDiv = document.createElement('div');
+            loadingDiv.id = 'chat-loading';
+            loadingDiv.className = 'flex justify-start';
+            loadingDiv.innerHTML = `
+                <div class="bg-white border border-slate-200 rounded-lg px-4 py-3 shadow-sm">
+                    <div class="flex items-center gap-2 text-slate-400">
+                        <span class="iconify animate-spin" data-icon="solar:spinner-bold"></span>
+                        <span class="text-sm">Thinking...</span>
+                    </div>
+                </div>
+            `;
+            messagesDiv.appendChild(loadingDiv);
+            scrollToBottom();
+
+            try {
+                const response = await fetch(`/api/chat/${currentChatReportId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+                document.getElementById('chat-loading')?.remove();
+
+                if (data.error) {
+                    showChatError(data.error);
+                } else {
+                    const assistantDiv = document.createElement('div');
+                    assistantDiv.innerHTML = createMessageHTML(data.assistant_message);
+                    messagesDiv.appendChild(assistantDiv.firstElementChild);
+                }
+            } catch (error) {
+                document.getElementById('chat-loading')?.remove();
+                showChatError('Failed to send message. Please try again.');
+            } finally {
+                chatIsLoading = false;
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = '<span class="iconify" data-icon="solar:plain-bold"></span> Send';
+                scrollToBottom();
+            }
+        }
+
+        function sendSuggestedQuestion(question) {
+            document.getElementById('chat-input').value = question;
+            sendMessage();
+        }
+
+        function showChatError(message) {
+            const messagesDiv = document.getElementById('chat-messages');
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'flex justify-center';
+            errorDiv.innerHTML = `
+                <div class="bg-red-50 text-red-600 rounded-lg px-4 py-2 text-sm">
+                    ${escapeHtml(message)}
+                </div>
+            `;
+            messagesDiv.appendChild(errorDiv);
+        }
+
+        async function clearChatHistory() {
+            if (!currentChatReportId) return;
+            if (!confirm('Clear chat history for this report?')) return;
+
+            try {
+                await fetch(`/api/chat/${currentChatReportId}`, { method: 'DELETE' });
+                loadChatHistory(currentChatReportId);
+            } catch (error) {
+                console.error('Failed to clear chat:', error);
+            }
+        }
+
+        function scrollToBottom() {
+            const messagesDiv = document.getElementById('chat-messages');
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('chat-panel').classList.contains('translate-x-full') === false) {
+                closeChat();
             }
         });
     </script>
