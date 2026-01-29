@@ -1,7 +1,9 @@
 """Chat functionality for discussing report insights with LLM."""
 
+import fcntl
 import json
 import uuid
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
@@ -10,21 +12,45 @@ from analyzer import call_llm, load_config
 
 DATA_DIR = Path(__file__).parent.parent / "data"
 CHATS_FILE = DATA_DIR / "chats.json"
+LOCK_FILE = DATA_DIR / ".chats.lock"
 
 
-def load_chats() -> dict:
-    """Load all chat conversations from disk."""
+@contextmanager
+def _chats_lock():
+    """Context manager for exclusive access to chats file."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    with open(LOCK_FILE, "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock, fcntl.LOCK_UN)
+
+
+def _load_chats_unlocked() -> dict:
+    """Load chats without locking (caller must hold lock)."""
     if CHATS_FILE.exists():
         with open(CHATS_FILE) as f:
             return json.load(f)
     return {"conversations": {}}
 
 
-def save_chats(data: dict) -> None:
-    """Save chat conversations to disk."""
-    DATA_DIR.mkdir(parents=True, exist_ok=True)
+def _save_chats_unlocked(data: dict) -> None:
+    """Save chats without locking (caller must hold lock)."""
     with open(CHATS_FILE, "w") as f:
         json.dump(data, f, indent=2)
+
+
+def load_chats() -> dict:
+    """Load all chat conversations from disk."""
+    with _chats_lock():
+        return _load_chats_unlocked()
+
+
+def save_chats(data: dict) -> None:
+    """Save chat conversations to disk."""
+    with _chats_lock():
+        _save_chats_unlocked(data)
 
 
 def get_conversation(report_id: str) -> Optional[dict]:
@@ -35,38 +61,40 @@ def get_conversation(report_id: str) -> Optional[dict]:
 
 def add_message(report_id: str, role: str, content: str) -> dict:
     """Add a message to a conversation."""
-    chats = load_chats()
+    with _chats_lock():
+        chats = _load_chats_unlocked()
 
-    if report_id not in chats["conversations"]:
-        chats["conversations"][report_id] = {
-            "report_id": report_id,
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "updated_at": datetime.now(timezone.utc).isoformat(),
-            "messages": [],
+        if report_id not in chats["conversations"]:
+            chats["conversations"][report_id] = {
+                "report_id": report_id,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "updated_at": datetime.now(timezone.utc).isoformat(),
+                "messages": [],
+            }
+
+        message = {
+            "id": f"msg_{uuid.uuid4().hex[:8]}",
+            "role": role,
+            "content": content,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-    message = {
-        "id": f"msg_{uuid.uuid4().hex[:8]}",
-        "role": role,
-        "content": content,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-    }
+        chats["conversations"][report_id]["messages"].append(message)
+        chats["conversations"][report_id]["updated_at"] = message["timestamp"]
 
-    chats["conversations"][report_id]["messages"].append(message)
-    chats["conversations"][report_id]["updated_at"] = message["timestamp"]
-
-    save_chats(chats)
-    return message
+        _save_chats_unlocked(chats)
+        return message
 
 
 def clear_conversation(report_id: str) -> bool:
     """Clear conversation history for a specific report."""
-    chats = load_chats()
-    if report_id in chats["conversations"]:
-        del chats["conversations"][report_id]
-        save_chats(chats)
-        return True
-    return False
+    with _chats_lock():
+        chats = _load_chats_unlocked()
+        if report_id in chats["conversations"]:
+            del chats["conversations"][report_id]
+            _save_chats_unlocked(chats)
+            return True
+        return False
 
 
 def format_report_context(report: dict) -> str:
