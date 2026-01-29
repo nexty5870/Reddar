@@ -14,6 +14,8 @@ import yaml
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+from chat import get_conversation, clear_conversation, chat_with_report
+
 app = Flask(__name__, template_folder="templates", static_folder="static")
 
 # Paths
@@ -233,6 +235,63 @@ def api_token_usage():
                 "recent_logs": [],
             }
         )
+
+
+@app.route("/api/chat/<report_id>", methods=["GET"])
+def api_get_chat(report_id: str):
+    """API: Get chat history for a report."""
+    conversation = get_conversation(report_id)
+    if not conversation:
+        return jsonify({
+            "report_id": report_id,
+            "messages": [],
+            "created_at": None,
+            "updated_at": None,
+        })
+    return jsonify(conversation)
+
+
+@app.route("/api/chat/<report_id>", methods=["POST"])
+def api_send_chat(report_id: str):
+    """API: Send a chat message and get LLM response."""
+    report = get_report(report_id)
+    if not report:
+        return jsonify({"error": "Report not found"}), 404
+
+    data = request.get_json()
+    if not data or not data.get("message"):
+        return jsonify({"error": "Message required"}), 400
+
+    user_message = data["message"].strip()
+    if not user_message:
+        return jsonify({"error": "Message cannot be empty"}), 400
+
+    config = load_config()
+
+    try:
+        user_msg, assistant_msg = chat_with_report(
+            report_id=report_id,
+            report=report,
+            user_message=user_message,
+            config=config,
+        )
+
+        return jsonify({
+            "user_message": user_msg,
+            "assistant_message": assistant_msg,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/chat/<report_id>", methods=["DELETE"])
+def api_clear_chat(report_id: str):
+    """API: Clear chat history for a report."""
+    success = clear_conversation(report_id)
+    return jsonify({
+        "success": success,
+        "message": "Chat history cleared" if success else "No chat history found",
+    })
 
 
 @app.route("/run")
