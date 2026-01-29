@@ -8,125 +8,193 @@
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
+                        'serif': ['Playfair Display', 'Georgia', 'serif'],
                         'sans': ['Inter', 'system-ui', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        'brand': {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            400: '#4ade80',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                        }
+                        'paper': '#faf9f6',
+                        'charcoal': '#1a1a1a',
+                        'slate-struct': '#334155',
+                        'cyan-accent': '#0066cc',
+                        'muted': '#64748b',
                     }
                 }
             }
         }
     </script>
     <style>
-        body { font-family: 'Inter', system-ui, sans-serif; }
-        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #faf9f6;
+            color: #1a1a1a;
+        }
+
+        /* Grid background pattern */
+        .grid-bg {
+            background-image:
+                radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+            background-size: 16px 16px;
+            background-position: 0 0;
+        }
+
+        /* Typography */
+        .font-editorial { font-family: 'Playfair Display', Georgia, serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Sharp components - no rounded corners */
         .card {
-            background: white;
+            background: #ffffff;
             border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
+            transition: border-color 0.15s linear;
         }
-        
-        .opportunity-card {
-            background: white;
-            border: 2px solid #e2e8f0;
-            transition: all 0.25s ease;
+        .card:hover {
+            border-color: #94a3b8;
         }
-        .opportunity-card:hover {
-            border-color: #cbd5e1;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+
+        /* Buttons */
+        .btn-primary {
+            background: #1a1a1a;
+            color: white;
+            transition: background 0.15s linear;
         }
-        .opportunity-card.expanded {
-            border-color: #10b981;
-            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.12);
+        .btn-primary:hover {
+            background: #334155;
         }
-        
-        .badge-high { background: #dcfce7; color: #166534; }
-        .badge-medium { background: #fef3c7; color: #92400e; }
-        .badge-low { background: #fee2e2; color: #991b1b; }
-        
+
+        /* Focus states */
+        .focus-sharp:focus {
+            outline: 2px solid #0066cc;
+            outline-offset: 2px;
+        }
+
+        /* Selection color */
+        ::selection {
+            background: #e0f2fe;
+            color: #1a1a1a;
+        }
+
+        /* Status badges */
+        .badge-high {
+            background: #dcfce7;
+            color: #166534;
+        }
+        .badge-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .badge-low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Evidence card */
         .evidence-card {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border-left: 3px solid #0ea5e9;
+            background: #f8fafc;
+            border-left: 2px solid #0066cc;
         }
-        
+
+        /* Expandable content */
         .expand-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.4s ease-out;
+            transition: max-height 0.3s linear;
         }
         .expand-content.open {
             max-height: 2000px;
         }
-        
-        /* Logo dot with glow */
-        .logo-dot {
-            width: 10px;
-            height: 10px;
-            background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
-            border-radius: 50%;
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.5), 0 0 4px rgba(16, 185, 129, 0.8);
-            animation: pulse-glow 2s ease-in-out infinite;
+
+        /* Opportunity card */
+        .opportunity-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            transition: all 0.15s linear;
         }
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.5), 0 0 4px rgba(16, 185, 129, 0.8); }
-            50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.7), 0 0 8px rgba(16, 185, 129, 1); }
+        .opportunity-card:hover {
+            border-color: #94a3b8;
+        }
+        .opportunity-card.expanded {
+            border-color: #0066cc;
+            border-left-width: 2px;
+        }
+
+        /* Chat panel */
+        .chat-panel {
+            transform: translateX(100%);
+            transition: transform 0.2s linear;
+        }
+        .chat-panel.open {
+            transform: translateX(0);
+        }
+
+        /* Metric value */
+        .metric-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen antialiased">
-    <!-- Header -->
+<body class="min-h-screen antialiased grid-bg">
+    <!-- Header with Meta Bar -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <!-- Meta Bar -->
+        <div class="border-b border-slate-100 bg-slate-50">
+            <div class="container mx-auto px-6 py-1.5 max-w-5xl">
+                <div class="font-mono text-xs text-muted flex items-center gap-4">
+                    <span>VIEW: /report/{{ report.id[:8] }}</span>
+                    <span class="text-slate-300">|</span>
+                    <span>FOCUS: {{ report.focus_name }}</span>
+                    <span class="text-slate-300">|</span>
+                    <span>{{ (report.updated_at or report.generated_at or '')[:10] }}</span>
+                </div>
+            </div>
+        </div>
+        <!-- Main Header -->
         <div class="container mx-auto px-6 py-4 max-w-5xl">
             <div class="flex justify-between items-center">
                 <div class="flex items-center gap-4">
-                    <a href="/" class="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors">
-                        <span class="iconify text-xl" data-icon="solar:arrow-left-linear"></span>
-                        <div class="logo-dot"></div>
+                    <a href="/" class="font-mono text-muted hover:text-cyan-accent transition-colors text-sm flex items-center gap-2">
+                        <span>&lt;-</span>
+                        <span class="text-slate-struct">┌─</span>
+                        <span class="font-editorial font-bold text-charcoal">Reddar</span>
+                        <span class="text-slate-struct">─┐</span>
                     </a>
-                    <div>
-                        <h1 class="text-lg font-semibold text-slate-900 tracking-tight">{{ report.focus_name }}</h1>
-                        <p class="text-sm text-slate-500 flex items-center gap-1">
-                            <span class="iconify text-xs" data-icon="solar:calendar-bold"></span>
-                            {{ (report.updated_at or report.generated_at or '')[:16] | replace('T', ' ') }} · {{ report.total_posts_analyzed or report.posts_analyzed or 0 }} posts
-                        </p>
-                    </div>
                 </div>
-                <div class="flex gap-4">
+                <div class="flex items-center gap-6">
                     {% if report.analysis.top_stories %}
                     <!-- News mode stats -->
-                    <div class="text-center px-4">
-                        <div class="text-xl font-bold text-red-600">{{ report.analysis.top_stories | length }}</div>
-                        <div class="text-xs text-slate-400">Stories</div>
-                    </div>
-                    <div class="text-center px-4">
-                        <div class="text-xl font-bold text-emerald-600">{{ report.analysis.notable_releases | default([]) | length }}</div>
-                        <div class="text-xs text-slate-400">Releases</div>
+                    <div class="flex items-center gap-6 font-mono text-sm">
+                        <div class="text-right">
+                            <span class="text-muted">stories:</span>
+                            <span class="metric-value text-cyan-accent ml-1">{{ report.analysis.top_stories | length }}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-muted">releases:</span>
+                            <span class="metric-value text-charcoal ml-1">{{ report.analysis.notable_releases | default([]) | length }}</span>
+                        </div>
                     </div>
                     {% else %}
                     <!-- Opportunity mode stats -->
-                    <div class="text-center px-4">
-                        <div class="text-xl font-bold text-emerald-600">{{ report.analysis.opportunities | default([]) | length }}</div>
-                        <div class="text-xs text-slate-400">Opportunities</div>
-                    </div>
-                    <div class="text-center px-4">
-                        <div class="text-xl font-bold text-amber-600">{{ report.analysis.pain_points | default([]) | length }}</div>
-                        <div class="text-xs text-slate-400">Pain Points</div>
+                    <div class="flex items-center gap-6 font-mono text-sm">
+                        <div class="text-right">
+                            <span class="text-muted">opps:</span>
+                            <span class="metric-value text-cyan-accent ml-1">{{ report.analysis.opportunities | default([]) | length }}</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-muted">pains:</span>
+                            <span class="metric-value text-charcoal ml-1">{{ report.analysis.pain_points | default([]) | length }}</span>
+                        </div>
                     </div>
                     {% endif %}
+                    <button onclick="openChat('{{ report.id }}', '{{ report.focus_name }}')" class="btn-primary px-4 py-2 font-mono text-sm focus-sharp">
+                        [CHAT]
+                    </button>
                 </div>
             </div>
         </div>
@@ -135,66 +203,61 @@
     <main class="container mx-auto px-6 py-8 max-w-5xl">
         <!-- Executive Summary -->
         {% if report.analysis.executive_summary %}
-        <div class="card rounded-lg p-6 mb-8 border-l-4 border-l-slate-900">
-            <div class="flex items-center gap-2 mb-3">
-                <span class="iconify text-slate-700" data-icon="solar:document-text-bold-duotone"></span>
-                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Executive Summary</h2>
+        <section class="mb-10">
+            <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[EXECUTIVE_SUMMARY]</h2>
+            <div class="card p-6 border-l-2 border-l-charcoal">
+                <p class="font-editorial text-lg text-charcoal leading-relaxed">{{ report.analysis.executive_summary }}</p>
             </div>
-            <p class="text-slate-700 leading-relaxed">{{ report.analysis.executive_summary }}</p>
-        </div>
+        </section>
         {% endif %}
 
         <!-- NEWS MODE: Top Stories -->
         {% if report.analysis.top_stories %}
         <section class="mb-10">
-            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-red-500"></span>
-                Top Stories
-            </h2>
-            
-            <div class="space-y-4">
+            <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[TOP_STORIES]</h2>
+
+            <div class="space-y-3">
                 {% for story in report.analysis.top_stories %}
-                <div class="card rounded-lg p-5 {% if story.importance == 'high' %}border-l-4 border-l-red-500{% endif %}">
-                    <div class="flex justify-between items-start gap-4 mb-2">
-                        <h3 class="text-base font-semibold text-slate-900">{{ story.headline }}</h3>
+                <div class="card p-5 {% if story.importance == 'high' %}border-l-2 border-l-cyan-accent{% endif %}">
+                    <div class="flex justify-between items-start gap-4 mb-3">
+                        <h3 class="font-editorial text-lg font-semibold text-charcoal">{{ story.headline }}</h3>
                         <div class="flex gap-2 flex-shrink-0">
                             {% set importance = story.importance | default('medium') | lower %}
-                            <span class="badge-{{ importance }} px-2 py-0.5 rounded text-xs font-semibold">
-                                {{ importance }}
+                            <span class="badge-{{ importance }} px-2 py-0.5 font-mono text-xs font-medium">
+                                {{ importance | upper }}
                             </span>
                             {% if story.category %}
-                            <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-xs font-medium">
+                            <span class="bg-slate-100 text-muted px-2 py-0.5 font-mono text-xs">
                                 {{ story.category }}
                             </span>
                             {% endif %}
                         </div>
                     </div>
                     <p class="text-sm text-slate-600 mb-3">{{ story.summary }}</p>
-                    <div class="flex items-center gap-4 text-xs text-slate-500">
+                    <div class="flex items-center gap-4 font-mono text-xs text-muted">
                         {% if story.subreddit %}
-                        <span class="text-emerald-600">r/{{ story.subreddit }}</span>
+                        <span class="text-cyan-accent">r/{{ story.subreddit }}</span>
                         {% endif %}
                         {% if story.engagement %}
                         <span>{{ story.engagement }}</span>
                         {% endif %}
                         {% if story.reddit_url %}
-                        <a href="{{ story.reddit_url }}" target="_blank" class="text-sky-600 hover:text-sky-700 flex items-center gap-1">
-                            <span class="iconify text-xs" data-icon="solar:link-bold"></span>
-                            Reddit
+                        <a href="{{ story.reddit_url }}" target="_blank" class="text-cyan-accent hover:underline">
+                            [LINK]
                         </a>
                         {% endif %}
                     </div>
                     {% if story.links %}
                     <div class="mt-3 flex flex-wrap gap-2">
                         {% for link in story.links %}
-                        <a href="{{ link }}" target="_blank" class="text-xs text-slate-500 hover:text-slate-700 underline truncate max-w-xs">{{ link }}</a>
+                        <a href="{{ link }}" target="_blank" class="font-mono text-xs text-muted hover:text-cyan-accent underline truncate max-w-xs">{{ link }}</a>
                         {% endfor %}
                     </div>
                     {% endif %}
                     {% if story.tags %}
                     <div class="flex flex-wrap gap-1 mt-3">
                         {% for tag in story.tags %}
-                        <span class="bg-brand-50 text-brand-700 px-2 py-0.5 rounded text-xs">{{ tag }}</span>
+                        <span class="bg-slate-100 text-muted px-2 py-0.5 font-mono text-xs">{{ tag }}</span>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -207,30 +270,27 @@
         <!-- NEWS MODE: Notable Releases -->
         {% if report.analysis.notable_releases %}
         <section class="mb-10">
-            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                Notable Releases
-            </h2>
-            
+            <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[NOTABLE_RELEASES]</h2>
+
             <div class="grid gap-3 md:grid-cols-2">
                 {% for release in report.analysis.notable_releases %}
-                <div class="card rounded-lg p-5">
-                    <div class="flex justify-between items-start mb-1">
-                        <h3 class="font-semibold text-slate-900">{{ release.name }}</h3>
+                <div class="card p-5">
+                    <div class="flex justify-between items-start mb-2">
+                        <h3 class="font-editorial font-semibold text-charcoal">{{ release.name }}</h3>
                         {% if release.reddit_url %}
-                        <a href="{{ release.reddit_url }}" target="_blank" class="text-xs text-sky-600 hover:text-sky-700 flex items-center gap-1">
-                            <span class="iconify" data-icon="solar:link-bold"></span>
+                        <a href="{{ release.reddit_url }}" target="_blank" class="font-mono text-xs text-cyan-accent hover:underline">
+                            [LINK]
                         </a>
                         {% endif %}
                     </div>
                     <p class="text-sm text-slate-600 mb-2">{{ release.description }}</p>
                     {% if release.why_notable %}
-                    <p class="text-xs text-emerald-600 bg-emerald-50 p-2 rounded mb-2">{{ release.why_notable }}</p>
+                    <p class="font-mono text-xs text-cyan-accent bg-slate-50 p-2 border border-slate-200 mb-2">{{ release.why_notable }}</p>
                     {% endif %}
                     {% if release.links %}
                     <div class="flex flex-wrap gap-2">
                         {% for link in release.links %}
-                        <a href="{{ link }}" target="_blank" class="text-xs text-slate-500 hover:text-slate-700 underline truncate max-w-xs">{{ link }}</a>
+                        <a href="{{ link }}" target="_blank" class="font-mono text-xs text-muted hover:text-cyan-accent underline truncate max-w-xs">{{ link }}</a>
                         {% endfor %}
                     </div>
                     {% endif %}
@@ -243,25 +303,22 @@
         <!-- NEWS MODE: Trending Discussions -->
         {% if report.analysis.trending_discussions %}
         <section class="mb-10">
-            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-sky-500"></span>
-                Trending Discussions
-            </h2>
-            
+            <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[TRENDING_DISCUSSIONS]</h2>
+
             <div class="space-y-3">
                 {% for disc in report.analysis.trending_discussions %}
-                <div class="card rounded-lg p-5">
+                <div class="card p-5">
                     <div class="flex justify-between items-start mb-2">
-                        <h3 class="font-semibold text-slate-900">{{ disc.topic }}</h3>
+                        <h3 class="font-editorial font-semibold text-charcoal">{{ disc.topic }}</h3>
                         <div class="flex items-center gap-2">
                             {% if disc.sentiment %}
-                            <span class="{% if disc.sentiment == 'positive' %}text-emerald-600 bg-emerald-50{% elif disc.sentiment == 'negative' %}text-red-600 bg-red-50{% else %}text-gray-600 bg-gray-100{% endif %} px-2 py-0.5 rounded text-xs font-medium">
-                                {{ disc.sentiment }}
+                            <span class="font-mono text-xs px-2 py-0.5 {% if disc.sentiment == 'positive' %}badge-high{% elif disc.sentiment == 'negative' %}badge-low{% else %}bg-slate-100 text-muted{% endif %}">
+                                {{ disc.sentiment | upper }}
                             </span>
                             {% endif %}
                             {% if disc.reddit_url %}
-                            <a href="{{ disc.reddit_url }}" target="_blank" class="text-sky-600 hover:text-sky-700">
-                                <span class="iconify text-sm" data-icon="solar:link-bold"></span>
+                            <a href="{{ disc.reddit_url }}" target="_blank" class="font-mono text-xs text-cyan-accent hover:underline">
+                                [LINK]
                             </a>
                             {% endif %}
                         </div>
@@ -276,20 +333,17 @@
         <!-- NEWS MODE: Tools Mentioned -->
         {% if report.analysis.tools_mentioned %}
         <section class="mb-10">
-            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                Tools & Projects Mentioned
-            </h2>
-            
+            <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[TOOLS_MENTIONED]</h2>
+
             <div class="grid gap-3 md:grid-cols-3">
                 {% for tool in report.analysis.tools_mentioned %}
-                <div class="card rounded-lg p-4 text-center">
-                    <h3 class="font-semibold text-slate-900">{{ tool.name }}</h3>
+                <div class="card p-4">
+                    <h3 class="font-editorial font-semibold text-charcoal">{{ tool.name }}</h3>
                     {% if tool.mentions %}
-                    <p class="text-xs text-slate-500 mt-1">{{ tool.mentions }}</p>
+                    <p class="font-mono text-xs text-muted mt-1">{{ tool.mentions }}</p>
                     {% endif %}
                     {% if tool.sentiment %}
-                    <p class="text-xs mt-2 {% if 'positive' in tool.sentiment|lower %}text-emerald-600{% elif 'negative' in tool.sentiment|lower %}text-red-600{% else %}text-slate-500{% endif %}">{{ tool.sentiment }}</p>
+                    <p class="font-mono text-xs mt-2 {% if 'positive' in tool.sentiment|lower %}text-green-600{% elif 'negative' in tool.sentiment|lower %}text-red-600{% else %}text-muted{% endif %}">{{ tool.sentiment }}</p>
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -300,17 +354,14 @@
         <!-- NEWS MODE: Key Takeaways -->
         {% if report.analysis.key_takeaways %}
         <section class="mb-10">
-            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                Key Takeaways
-            </h2>
-            
-            <div class="card rounded-lg p-6 bg-amber-50 border-amber-200">
-                <ul class="space-y-2">
+            <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[KEY_TAKEAWAYS]</h2>
+
+            <div class="card p-6 bg-slate-50 border-slate-200">
+                <ul class="space-y-3">
                     {% for takeaway in report.analysis.key_takeaways %}
-                    <li class="flex items-start gap-2 text-slate-700">
-                        <span class="text-amber-600 font-bold">•</span>
-                        {{ takeaway }}
+                    <li class="flex items-start gap-3 text-slate-700">
+                        <span class="font-mono text-cyan-accent font-bold">></span>
+                        <span>{{ takeaway }}</span>
                     </li>
                     {% endfor %}
                 </ul>
@@ -321,77 +372,74 @@
         <!-- OPPORTUNITY MODE: Opportunities -->
         {% if report.analysis.opportunities and not report.analysis.top_stories %}
         <section class="mb-10">
-            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                Opportunities
-            </h2>
-            
+            <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[OPPORTUNITIES]</h2>
+
             <div class="space-y-3">
                 {% for opp in report.analysis.opportunities %}
-                <div class="opportunity-card rounded-lg overflow-hidden" id="opp-{{ loop.index }}">
+                <div class="opportunity-card" id="opp-{{ loop.index }}">
                     <!-- Header -->
                     <div class="p-5 cursor-pointer" onclick="toggleOpportunity({{ loop.index }})">
                         <div class="flex justify-between items-start gap-4">
                             <div class="flex-1">
-                                <div class="flex items-center gap-3 mb-1">
-                                    <span class="text-emerald-600 font-bold">#{{ loop.index }}</span>
-                                    <h3 class="text-base font-semibold text-slate-900">{{ opp.title }}</h3>
+                                <div class="flex items-center gap-3 mb-2">
+                                    <span class="font-mono text-cyan-accent font-bold">#{{ loop.index }}</span>
+                                    <h3 class="font-editorial text-lg font-semibold text-charcoal">{{ opp.title }}</h3>
                                 </div>
                                 <p class="text-sm text-slate-600">{{ opp.description }}</p>
                             </div>
                             <div class="flex gap-2 flex-shrink-0">
                                 {% set potential = opp.potential | default('medium') | lower %}
-                                <span class="badge-{{ potential }} px-2.5 py-1 rounded-full text-xs font-semibold">
-                                    {{ potential }} potential
+                                <span class="badge-{{ potential }} px-2.5 py-1 font-mono text-xs font-medium">
+                                    {{ potential | upper }}
                                 </span>
                             </div>
                         </div>
-                        <div class="flex items-center gap-1 mt-3 text-xs text-slate-400">
-                            <span>Click to expand</span>
+                        <div class="flex items-center gap-2 mt-3 font-mono text-xs text-muted">
+                            <span>click to expand</span>
                             <svg class="w-4 h-4 transform transition-transform" id="arrow-{{ loop.index }}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                             </svg>
                         </div>
                     </div>
-                    
+
                     <!-- Expanded Content -->
                     <div class="expand-content" id="content-{{ loop.index }}">
                         <div class="px-5 pb-5 border-t border-slate-100 pt-4 space-y-4">
                             <!-- Demand Signals -->
                             {% if opp.demand_signals %}
                             <div>
-                                <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Demand Signals</h4>
-                                <p class="text-sm text-slate-700 bg-emerald-50 p-3 rounded-lg border border-emerald-100">{{ opp.demand_signals }}</p>
+                                <h4 class="font-mono text-xs text-muted uppercase tracking-wider mb-2">[DEMAND_SIGNALS]</h4>
+                                <p class="text-sm text-charcoal bg-slate-50 p-3 border border-slate-200">{{ opp.demand_signals }}</p>
                             </div>
                             {% endif %}
-                            
+
                             <!-- Competition -->
                             {% if opp.competition %}
                             <div>
-                                <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Competition</h4>
-                                <p class="text-sm text-slate-700 bg-amber-50 p-3 rounded-lg border border-amber-100">{{ opp.competition }}</p>
+                                <h4 class="font-mono text-xs text-muted uppercase tracking-wider mb-2">[COMPETITION]</h4>
+                                <p class="text-sm text-charcoal bg-slate-50 p-3 border border-slate-200">{{ opp.competition }}</p>
                             </div>
                             {% endif %}
-                            
+
                             <!-- Evidence -->
                             {% if opp.evidence %}
                             <div>
-                                <h4 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Source Evidence</h4>
+                                <h4 class="font-mono text-xs text-muted uppercase tracking-wider mb-2">[SOURCE_EVIDENCE]</h4>
                                 <div class="space-y-2">
                                     {% for evidence in opp.evidence %}
-                                    <div class="evidence-card p-3 rounded-r-lg">
-                                        <p class="text-sm text-slate-700">{{ evidence }}</p>
+                                    <div class="evidence-card p-3">
+                                        <p class="text-sm text-charcoal">{{ evidence }}</p>
                                     </div>
                                     {% endfor %}
                                 </div>
                             </div>
                             {% endif %}
-                            
+
                             <!-- Tags -->
                             {% if opp.tags %}
                             <div class="flex flex-wrap gap-2 pt-2">
                                 {% for tag in opp.tags %}
-                                <span class="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full text-xs font-medium">{{ tag }}</span>
+                                <span class="bg-slate-100 text-muted px-2.5 py-1 font-mono text-xs">{{ tag }}</span>
                                 {% endfor %}
                             </div>
                             {% endif %}
@@ -406,28 +454,25 @@
         <!-- Pain Points -->
         {% if report.analysis.pain_points %}
         <section class="mb-10">
-            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                Pain Points
-            </h2>
-            
+            <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[PAIN_POINTS]</h2>
+
             <div class="grid gap-3 md:grid-cols-2">
                 {% for pain in report.analysis.pain_points %}
-                <div class="card rounded-lg p-5">
+                <div class="card p-5">
                     <div class="flex justify-between items-start mb-2">
-                        <h3 class="font-semibold text-slate-900">{{ pain.problem }}</h3>
+                        <h3 class="font-editorial font-semibold text-charcoal">{{ pain.problem }}</h3>
                         {% set severity = pain.severity | default('medium') | lower %}
-                        <span class="badge-{{ severity }} px-2 py-0.5 rounded text-xs font-semibold">
-                            {{ severity }}
+                        <span class="badge-{{ severity }} px-2 py-0.5 font-mono text-xs font-medium">
+                            {{ severity | upper }}
                         </span>
                     </div>
                     {% if pain.current_solutions %}
                     <p class="text-sm text-slate-600 mt-2">
-                        <span class="text-slate-500">Solutions:</span> {{ pain.current_solutions }}
+                        <span class="font-mono text-xs text-muted">solutions:</span> {{ pain.current_solutions }}
                     </p>
                     {% endif %}
                     {% if pain.frequency %}
-                    <p class="text-sm text-slate-500 mt-1">{{ pain.frequency }}</p>
+                    <p class="font-mono text-xs text-muted mt-2">{{ pain.frequency }}</p>
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -438,17 +483,14 @@
         <!-- Market Insights -->
         {% if report.analysis.market_insights %}
         <section class="mb-10">
-            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-sky-500"></span>
-                Market Insights
-            </h2>
-            
+            <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[MARKET_INSIGHTS]</h2>
+
             <div class="space-y-3">
                 {% for insight in report.analysis.market_insights %}
-                <div class="card rounded-lg p-5">
-                    <p class="text-slate-900 font-medium">{{ insight.insight }}</p>
+                <div class="card p-5">
+                    <p class="font-editorial text-charcoal font-medium">{{ insight.insight }}</p>
                     {% if insight.evidence %}
-                    <p class="text-sm text-slate-500 mt-2">{{ insight.evidence }}</p>
+                    <p class="text-sm text-muted mt-2">{{ insight.evidence }}</p>
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -459,16 +501,13 @@
         <!-- Recommended Actions -->
         {% if report.analysis.recommended_actions %}
         <section class="mb-10">
-            <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-                Recommended Actions
-            </h2>
-            
+            <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[RECOMMENDED_ACTIONS]</h2>
+
             <div class="space-y-2">
                 {% for action in report.analysis.recommended_actions %}
-                <div class="card rounded-lg p-4 flex items-start gap-3">
-                    <span class="text-emerald-500 font-medium">→</span>
-                    <p class="text-slate-700">{{ action }}</p>
+                <div class="card p-4 flex items-start gap-3">
+                    <span class="font-mono text-cyan-accent font-bold">></span>
+                    <p class="text-charcoal">{{ action }}</p>
                 </div>
                 {% endfor %}
             </div>
@@ -476,62 +515,61 @@
         {% endif %}
 
         <!-- Metadata -->
-        <div class="text-xs text-slate-400 border-t border-slate-200 pt-6 mt-10">
-            Report ID: {{ report.id }} · Model: {{ (report.metadata or {}).get('model', 'unknown') }} · 
-            Subreddits: {{ report.subreddits_analyzed | join(', ') }}
+        <div class="font-mono text-xs text-muted border-t border-slate-200 pt-6 mt-10">
+            <span class="text-slate-struct">report_id:</span> {{ report.id }}
+            <span class="text-slate-300 mx-2">|</span>
+            <span class="text-slate-struct">model:</span> {{ (report.metadata or {}).get('model', 'unknown') }}
+            <span class="text-slate-300 mx-2">|</span>
+            <span class="text-slate-struct">subreddits:</span> {{ report.subreddits_analyzed | join(', ') }}
+            <span class="text-slate-300 mx-2">|</span>
+            <span class="text-slate-struct">posts:</span> {{ report.total_posts_analyzed or report.posts_analyzed or 0 }}
         </div>
     </main>
 
-    <!-- Floating Chat Button -->
-    <button onclick="openChat('{{ report.id }}', '{{ report.focus_name }}')"
-            class="fixed bottom-6 right-6 w-14 h-14 bg-slate-900 hover:bg-slate-800 text-white rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105 z-40"
-            title="Chat about this report">
-        <span class="iconify text-2xl" data-icon="solar:chat-round-dots-bold"></span>
-    </button>
+    <!-- Footer -->
+    <footer class="container mx-auto px-6 py-8 max-w-5xl">
+        <div class="text-center font-mono text-xs text-muted">
+            <span class="text-slate-struct">┌─</span>
+            Reddar v1.0
+            <span class="text-slate-struct">─┐</span>
+        </div>
+    </footer>
 
     <!-- Chat Slide-Out Panel -->
-    <div id="chat-panel" class="fixed inset-y-0 right-0 w-full md:w-[480px] bg-white shadow-2xl transform translate-x-full transition-transform duration-300 z-50 flex flex-col">
+    <div id="chat-panel" class="chat-panel fixed inset-y-0 right-0 w-full md:w-[480px] bg-white border-l border-slate-200 z-50 flex flex-col">
         <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
-                    <span class="iconify text-emerald-600" data-icon="solar:chat-round-dots-bold"></span>
-                </div>
+        <div class="border-b border-slate-200 px-6 py-4 bg-slate-50">
+            <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-sm font-semibold text-slate-900" id="chat-title">{{ report.focus_name }}</h2>
-                    <p class="text-xs text-slate-400" id="chat-subtitle">Ask questions about this report</p>
+                    <div class="font-mono text-xs text-muted mb-1">CHAT_SESSION</div>
+                    <h2 class="font-editorial text-lg font-bold text-charcoal" id="chat-title">Report Chat</h2>
                 </div>
-            </div>
-            <div class="flex items-center gap-2">
-                <button onclick="clearChatHistory()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors" title="Clear history">
-                    <span class="iconify" data-icon="solar:trash-bin-trash-bold"></span>
-                </button>
-                <button onclick="closeChat()" class="p-2 rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors">
-                    <span class="iconify text-xl" data-icon="solar:close-circle-bold"></span>
-                </button>
+                <div class="flex items-center gap-2">
+                    <button onclick="clearChatHistory()" class="font-mono text-xs text-muted hover:text-charcoal p-2" title="Clear history">
+                        [CLR]
+                    </button>
+                    <button onclick="closeChat()" class="font-mono text-xs text-muted hover:text-charcoal p-2">
+                        [X]
+                    </button>
+                </div>
             </div>
         </div>
 
         <!-- Messages Area -->
-        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50">
-            <!-- Welcome message -->
+        <div id="chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 bg-paper">
             <div id="chat-welcome" class="text-center py-12">
-                <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
-                    <span class="iconify text-emerald-600 text-2xl" data-icon="solar:chat-round-dots-bold-duotone"></span>
-                </div>
-                <h3 class="text-lg font-semibold text-slate-900 mb-2">Ask about this report</h3>
-                <p class="text-sm text-slate-500 max-w-xs mx-auto">I can help you understand the opportunities, pain points, and insights from this analysis.</p>
-
-                <!-- Suggested Questions -->
-                <div class="mt-6 space-y-2">
-                    <button onclick="sendSuggestedQuestion('What are the top 3 opportunities?')" class="block w-full text-left px-4 py-3 bg-white rounded-lg border border-slate-200 text-sm text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 transition-all">
-                        What are the top 3 opportunities?
+                <div class="font-mono text-6xl text-slate-200 mb-4">◇</div>
+                <h3 class="font-editorial text-lg font-bold text-charcoal mb-2">Ask about this report</h3>
+                <p class="text-sm text-muted max-w-xs mx-auto mb-6">I can help you understand the opportunities, pain points, and insights.</p>
+                <div class="space-y-2">
+                    <button onclick="sendSuggestedQuestion('What are the top 3 opportunities?')" class="block w-full text-left px-4 py-3 card font-mono text-sm text-charcoal hover:border-cyan-accent">
+                        > What are the top 3 opportunities?
                     </button>
-                    <button onclick="sendSuggestedQuestion('Which pain points have the highest demand?')" class="block w-full text-left px-4 py-3 bg-white rounded-lg border border-slate-200 text-sm text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 transition-all">
-                        Which pain points have the highest demand?
+                    <button onclick="sendSuggestedQuestion('Which pain points have the highest demand?')" class="block w-full text-left px-4 py-3 card font-mono text-sm text-charcoal hover:border-cyan-accent">
+                        > Which pain points have highest demand?
                     </button>
-                    <button onclick="sendSuggestedQuestion('Summarize the key market insights')" class="block w-full text-left px-4 py-3 bg-white rounded-lg border border-slate-200 text-sm text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 transition-all">
-                        Summarize the key market insights
+                    <button onclick="sendSuggestedQuestion('Summarize the key market insights')" class="block w-full text-left px-4 py-3 card font-mono text-sm text-charcoal hover:border-cyan-accent">
+                        > Summarize the key market insights
                     </button>
                 </div>
             </div>
@@ -542,24 +580,23 @@
             <div class="flex gap-3">
                 <input type="text"
                        id="chat-input"
-                       placeholder="Ask a question about this report..."
-                       class="flex-1 px-4 py-3 rounded-lg border border-slate-200 focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100 outline-none text-sm transition-all"
+                       placeholder="$ ask a question..."
+                       class="flex-1 px-4 py-3 bg-slate-50 border border-slate-200 font-mono text-sm text-charcoal placeholder-muted focus-sharp"
                        onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendMessage(); }">
                 <button onclick="sendMessage()"
                         id="chat-send-btn"
-                        class="px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-lg font-medium text-sm transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <span class="iconify" data-icon="solar:plain-bold"></span>
-                    Send
+                        class="btn-primary px-5 py-3 font-mono text-sm focus-sharp disabled:opacity-50">
+                    SEND
                 </button>
             </div>
         </div>
     </div>
 
     <!-- Chat Overlay -->
-    <div id="chat-overlay" class="fixed inset-0 bg-black/30 backdrop-blur-sm hidden z-40" onclick="closeChat()"></div>
+    <div id="chat-overlay" class="fixed inset-0 bg-charcoal/20 hidden z-40" onclick="closeChat()"></div>
 
     <script>
-        // Opportunity toggle functionality
+        // Opportunity toggle
         function toggleOpportunity(index) {
             const content = document.getElementById(`content-${index}`);
             const arrow = document.getElementById(`arrow-${index}`);
@@ -578,28 +615,21 @@
         });
 
         // Chat functionality
-        let currentChatReportId = '{{ report.id }}';
-        let currentChatReportName = '{{ report.focus_name }}';
+        let currentChatReportId = null;
         let chatIsLoading = false;
 
         function openChat(reportId, reportName) {
             currentChatReportId = reportId;
-            currentChatReportName = reportName;
-
             document.getElementById('chat-title').textContent = reportName;
-            document.getElementById('chat-subtitle').textContent = 'Ask questions about this report';
-
             loadChatHistory(reportId);
-
-            document.getElementById('chat-panel').classList.remove('translate-x-full');
+            document.getElementById('chat-panel').classList.add('open');
             document.getElementById('chat-overlay').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
-
-            setTimeout(() => document.getElementById('chat-input').focus(), 300);
+            setTimeout(() => document.getElementById('chat-input').focus(), 200);
         }
 
         function closeChat() {
-            document.getElementById('chat-panel').classList.add('translate-x-full');
+            document.getElementById('chat-panel').classList.remove('open');
             document.getElementById('chat-overlay').classList.add('hidden');
             document.body.style.overflow = '';
         }
@@ -607,11 +637,9 @@
         async function loadChatHistory(reportId) {
             const messagesDiv = document.getElementById('chat-messages');
             const welcomeDiv = document.getElementById('chat-welcome');
-
             try {
                 const response = await fetch(`/api/chat/${reportId}`);
                 const data = await response.json();
-
                 if (data.messages && data.messages.length > 0) {
                     welcomeDiv.classList.add('hidden');
                     messagesDiv.innerHTML = '';
@@ -627,7 +655,6 @@
                     messagesDiv.appendChild(welcomeDiv);
                 }
             } catch (error) {
-                console.error('Failed to load chat history:', error);
                 messagesDiv.innerHTML = '';
                 welcomeDiv.classList.remove('hidden');
                 messagesDiv.appendChild(welcomeDiv);
@@ -636,16 +663,23 @@
 
         function createMessageHTML(msg) {
             const isUser = msg.role === 'user';
-            const escapedContent = escapeHtml(msg.content);
-            const formattedContent = escapedContent.replace(/\n/g, '<br>');
-            return `
-                <div class="flex ${isUser ? 'justify-end' : 'justify-start'}">
-                    <div class="${isUser ? 'bg-slate-900 text-white' : 'bg-white border border-slate-200'} rounded-lg px-4 py-3 max-w-[85%] shadow-sm">
-                        <p class="text-sm whitespace-pre-wrap">${formattedContent}</p>
-                        <p class="text-xs ${isUser ? 'text-slate-400' : 'text-slate-400'} mt-2">${formatTime(msg.timestamp)}</p>
+            const content = escapeHtml(msg.content).replace(/\n/g, '<br>');
+            const time = formatTime(msg.timestamp);
+            if (isUser) {
+                return `<div class="flex justify-end">
+                    <div class="bg-charcoal text-white px-4 py-3 max-w-[85%]">
+                        <p class="text-sm">${content}</p>
+                        <p class="font-mono text-xs text-slate-400 mt-2">${time}</p>
                     </div>
-                </div>
-            `;
+                </div>`;
+            } else {
+                return `<div class="flex justify-start">
+                    <div class="card px-4 py-3 max-w-[85%]">
+                        <p class="text-sm text-charcoal">${content}</p>
+                        <p class="font-mono text-xs text-muted mt-2">${time}</p>
+                    </div>
+                </div>`;
+            }
         }
 
         function escapeHtml(text) {
@@ -662,17 +696,15 @@
 
         async function sendMessage() {
             if (chatIsLoading || !currentChatReportId) return;
-
             const input = document.getElementById('chat-input');
             const message = input.value.trim();
             if (!message) return;
 
             input.value = '';
             chatIsLoading = true;
-
             const sendBtn = document.getElementById('chat-send-btn');
             sendBtn.disabled = true;
-            sendBtn.innerHTML = '<span class="iconify animate-spin" data-icon="solar:spinner-bold"></span> Thinking...';
+            sendBtn.textContent = '...';
 
             document.getElementById('chat-welcome').classList.add('hidden');
             const messagesDiv = document.getElementById('chat-messages');
@@ -684,14 +716,7 @@
             const loadingDiv = document.createElement('div');
             loadingDiv.id = 'chat-loading';
             loadingDiv.className = 'flex justify-start';
-            loadingDiv.innerHTML = `
-                <div class="bg-white border border-slate-200 rounded-lg px-4 py-3 shadow-sm">
-                    <div class="flex items-center gap-2 text-slate-400">
-                        <span class="iconify animate-spin" data-icon="solar:spinner-bold"></span>
-                        <span class="text-sm">Thinking...</span>
-                    </div>
-                </div>
-            `;
+            loadingDiv.innerHTML = '<div class="card px-4 py-3"><span class="font-mono text-sm text-muted">processing...</span></div>';
             messagesDiv.appendChild(loadingDiv);
             scrollToBottom();
 
@@ -701,10 +726,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message })
                 });
-
                 const data = await response.json();
                 document.getElementById('chat-loading')?.remove();
-
                 if (data.error) {
                     showChatError(data.error);
                 } else {
@@ -714,11 +737,11 @@
                 }
             } catch (error) {
                 document.getElementById('chat-loading')?.remove();
-                showChatError('Failed to send message. Please try again.');
+                showChatError('Failed to send message.');
             } finally {
                 chatIsLoading = false;
                 sendBtn.disabled = false;
-                sendBtn.innerHTML = '<span class="iconify" data-icon="solar:plain-bold"></span> Send';
+                sendBtn.textContent = 'SEND';
                 scrollToBottom();
             }
         }
@@ -731,25 +754,17 @@
         function showChatError(message) {
             const messagesDiv = document.getElementById('chat-messages');
             const errorDiv = document.createElement('div');
-            errorDiv.className = 'flex justify-center';
-            errorDiv.innerHTML = `
-                <div class="bg-red-50 text-red-600 rounded-lg px-4 py-2 text-sm">
-                    ${escapeHtml(message)}
-                </div>
-            `;
+            errorDiv.className = 'text-center';
+            errorDiv.innerHTML = `<span class="font-mono text-sm text-red-600">[ERR] ${escapeHtml(message)}</span>`;
             messagesDiv.appendChild(errorDiv);
         }
 
         async function clearChatHistory() {
-            if (!currentChatReportId) return;
-            if (!confirm('Clear chat history for this report?')) return;
-
+            if (!currentChatReportId || !confirm('Clear chat history?')) return;
             try {
                 await fetch(`/api/chat/${currentChatReportId}`, { method: 'DELETE' });
                 loadChatHistory(currentChatReportId);
-            } catch (error) {
-                console.error('Failed to clear chat:', error);
-            }
+            } catch (error) {}
         }
 
         function scrollToBottom() {
@@ -758,9 +773,7 @@
         }
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && document.getElementById('chat-panel').classList.contains('translate-x-full') === false) {
-                closeChat();
-            }
+            if (e.key === 'Escape' && currentChatReportId) closeChat();
         });
     </script>
 </body>
