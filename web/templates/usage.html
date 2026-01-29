@@ -9,84 +9,90 @@
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
+                        'serif': ['Playfair Display', 'Georgia', 'serif'],
                         'sans': ['Inter', 'system-ui', 'sans-serif'],
                         'mono': ['JetBrains Mono', 'monospace'],
                     },
                     colors: {
-                        'brand': {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            200: '#bbf7d0',
-                            400: '#4ade80',
-                            500: '#22c55e',
-                            600: '#16a34a',
-                            700: '#15803d',
-                        }
+                        'paper': '#faf9f6',
+                        'charcoal': '#1a1a1a',
+                        'slate-struct': '#334155',
+                        'cyan-accent': '#0066cc',
+                        'muted': '#64748b',
                     }
                 }
             }
         }
     </script>
     <style>
-        body { font-family: 'Inter', system-ui, sans-serif; }
-        .mono { font-family: 'JetBrains Mono', monospace; }
-        
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: #faf9f6;
+            color: #1a1a1a;
+        }
+
+        /* Grid background pattern */
+        .grid-bg {
+            background-image:
+                radial-gradient(circle, #e2e8f0 1px, transparent 1px);
+            background-size: 16px 16px;
+            background-position: 0 0;
+        }
+
+        /* Typography */
+        .font-editorial { font-family: 'Playfair Display', Georgia, serif; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Sharp components */
         .card {
-            background: white;
+            background: #ffffff;
             border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.03);
         }
-        
-        .stat-card {
-            position: relative;
-            overflow: hidden;
+
+        /* Selection */
+        ::selection {
+            background: #e0f2fe;
+            color: #1a1a1a;
         }
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--accent-color), transparent);
-        }
-        
-        /* Logo dot with glow */
-        .logo-dot {
-            width: 10px;
-            height: 10px;
-            background: linear-gradient(135deg, #10b981 0%, #14b8a6 100%);
-            border-radius: 50%;
-            box-shadow: 0 0 12px rgba(16, 185, 129, 0.5), 0 0 4px rgba(16, 185, 129, 0.8);
-            animation: pulse-glow 2s ease-in-out infinite;
-        }
-        @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 0 12px rgba(16, 185, 129, 0.5), 0 0 4px rgba(16, 185, 129, 0.8); }
-            50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.7), 0 0 8px rgba(16, 185, 129, 1); }
+
+        /* Token breakdown bar */
+        .breakdown-bar {
+            background: #e2e8f0;
+            height: 4px;
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 min-h-screen antialiased">
-    <!-- Header -->
+<body class="min-h-screen antialiased grid-bg">
+    <!-- Header with Meta Bar -->
     <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <!-- Meta Bar -->
+        <div class="border-b border-slate-100 bg-slate-50">
+            <div class="container mx-auto px-6 py-1.5 max-w-6xl">
+                <div class="font-mono text-xs text-muted flex items-center gap-4">
+                    <span>VIEW: /usage</span>
+                    <span class="text-slate-300">|</span>
+                    <span>MODE: analytics</span>
+                    <span class="text-slate-300">|</span>
+                    <span id="connection-status">[...]</span>
+                </div>
+            </div>
+        </div>
+        <!-- Main Header -->
         <div class="container mx-auto px-6 py-4 max-w-6xl">
             <div class="flex justify-between items-center">
                 <div class="flex items-center gap-4">
-                    <a href="/" class="flex items-center gap-3 text-slate-500 hover:text-slate-900 transition-colors">
-                        <span class="iconify text-xl" data-icon="solar:arrow-left-linear"></span>
-                        <div class="logo-dot"></div>
-                        <span class="text-lg font-semibold text-slate-900 tracking-tight">Reddar</span>
+                    <a href="/" class="font-mono text-muted hover:text-cyan-accent transition-colors text-sm flex items-center gap-2">
+                        <span>&lt;-</span>
+                        <span class="text-slate-struct">┌─</span>
+                        <span class="font-editorial font-bold text-charcoal">Reddar</span>
+                        <span class="text-slate-struct">─┐</span>
                     </a>
-                </div>
-                <div id="connection-status" class="flex items-center gap-2 text-sm text-slate-400">
-                    <span class="w-2 h-2 rounded-full bg-slate-200"></span>
-                    Loading...
                 </div>
             </div>
         </div>
@@ -94,209 +100,191 @@
 
     <main class="container mx-auto px-6 py-8 max-w-6xl">
         <!-- Summary Stats -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <div class="card rounded-lg p-5 stat-card" style="--accent-color: #0f172a;">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="iconify text-slate-700" data-icon="solar:chat-round-dots-bold-duotone"></span>
+        <section class="mb-8">
+            <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[SUMMARY_METRICS]</h2>
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
+                <div class="card p-5">
+                    <div class="font-mono text-xs text-muted mb-2">[REQUESTS]</div>
+                    <div id="total-requests" class="font-mono text-2xl font-medium text-charcoal">-</div>
                 </div>
-                <div id="total-requests" class="text-3xl font-bold text-slate-900 mono">-</div>
-                <div class="text-sm text-slate-500">Requests</div>
-            </div>
-            <div class="card rounded-lg p-5 stat-card" style="--accent-color: #0ea5e9;">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="iconify text-sky-500" data-icon="solar:cpu-bolt-bold-duotone"></span>
+                <div class="card p-5">
+                    <div class="font-mono text-xs text-muted mb-2">[TOTAL_TOKENS]</div>
+                    <div id="total-tokens" class="font-mono text-2xl font-medium text-cyan-accent">-</div>
                 </div>
-                <div id="total-tokens" class="text-3xl font-bold text-sky-600 mono">-</div>
-                <div class="text-sm text-slate-500">Total Tokens</div>
-            </div>
-            <div class="card rounded-lg p-5 stat-card" style="--accent-color: #06b6d4;">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="iconify text-cyan-500" data-icon="solar:arrow-right-up-bold-duotone"></span>
+                <div class="card p-5">
+                    <div class="font-mono text-xs text-muted mb-2">[PROMPT]</div>
+                    <div id="prompt-tokens" class="font-mono text-2xl font-medium text-charcoal">-</div>
                 </div>
-                <div id="prompt-tokens" class="text-3xl font-bold text-slate-900 mono">-</div>
-                <div class="text-sm text-slate-500">Prompt</div>
-            </div>
-            <div class="card rounded-lg p-5 stat-card" style="--accent-color: #10b981;">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="iconify text-emerald-500" data-icon="solar:arrow-left-down-bold-duotone"></span>
+                <div class="card p-5">
+                    <div class="font-mono text-xs text-muted mb-2">[COMPLETION]</div>
+                    <div id="completion-tokens" class="font-mono text-2xl font-medium text-charcoal">-</div>
                 </div>
-                <div id="completion-tokens" class="text-3xl font-bold text-slate-900 mono">-</div>
-                <div class="text-sm text-slate-500">Completion</div>
-            </div>
-            <div class="card rounded-lg p-5 stat-card" style="--accent-color: #f59e0b;">
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="iconify text-amber-500" data-icon="solar:stopwatch-bold-duotone"></span>
+                <div class="card p-5">
+                    <div class="font-mono text-xs text-muted mb-2">[AVG_LATENCY]</div>
+                    <div id="avg-latency" class="font-mono text-2xl font-medium text-charcoal">-</div>
                 </div>
-                <div id="avg-latency" class="text-3xl font-bold text-slate-900 mono">-</div>
-                <div class="text-sm text-slate-500">Avg Latency</div>
             </div>
-        </div>
+        </section>
 
         <!-- Charts Row -->
-        <div class="grid md:grid-cols-2 gap-6 mb-8">
-            <div class="card rounded-lg p-6">
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="iconify text-slate-400" data-icon="solar:chart-2-bold-duotone"></span>
-                    <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Token Usage</h2>
+        <section class="mb-8">
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="card p-6">
+                    <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[TOKEN_USAGE]</h2>
+                    <div class="h-64">
+                        <canvas id="tokensChart"></canvas>
+                    </div>
                 </div>
-                <div class="h-64">
-                    <canvas id="tokensChart"></canvas>
-                </div>
-            </div>
-            
-            <div class="card rounded-lg p-6">
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="iconify text-slate-400" data-icon="solar:graph-up-bold-duotone"></span>
-                    <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Latency</h2>
-                </div>
-                <div class="h-64">
-                    <canvas id="latencyChart"></canvas>
+
+                <div class="card p-6">
+                    <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[LATENCY]</h2>
+                    <div class="h-64">
+                        <canvas id="latencyChart"></canvas>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
 
         <!-- Token Breakdown -->
-        <div class="card rounded-lg p-6 mb-8">
-            <div class="flex items-center gap-2 mb-4">
-                <span class="iconify text-slate-400" data-icon="solar:pie-chart-2-bold-duotone"></span>
-                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Token Breakdown</h2>
+        <section class="mb-8">
+            <div class="card p-6">
+                <h2 class="font-mono text-xs text-muted uppercase tracking-wider mb-4">[TOKEN_BREAKDOWN]</h2>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="font-mono text-xs text-muted">prompt:completion</span>
+                            <span id="ratio" class="font-mono text-xs text-charcoal">-</span>
+                        </div>
+                        <div class="breakdown-bar flex overflow-hidden">
+                            <div id="prompt-bar" class="h-full bg-cyan-accent transition-all" style="width: 50%"></div>
+                            <div id="completion-bar" class="h-full bg-slate-struct transition-all" style="width: 50%"></div>
+                        </div>
+                        <div class="flex justify-between mt-2 font-mono text-xs text-muted">
+                            <span class="flex items-center gap-1">
+                                <span class="w-2 h-2 bg-cyan-accent"></span> prompt
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <span class="w-2 h-2 bg-slate-struct"></span> completion
+                            </span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="font-mono text-xs text-muted mb-2">avg_tokens/request:</div>
+                        <div id="avg-tokens" class="font-mono text-2xl font-medium text-charcoal">-</div>
+                    </div>
+                    <div>
+                        <div class="font-mono text-xs text-muted mb-2">est_cost @ $0.15/1M:</div>
+                        <div id="estimated-cost" class="font-mono text-2xl font-medium text-cyan-accent">$0.00</div>
+                    </div>
+                </div>
             </div>
-            <div class="grid md:grid-cols-3 gap-6">
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="text-sm text-slate-500">Prompt vs Completion</span>
-                        <span id="ratio" class="text-sm font-semibold text-slate-900 mono">-</span>
-                    </div>
-                    <div class="h-3 bg-slate-100 rounded-full overflow-hidden flex">
-                        <div id="prompt-bar" class="h-full bg-sky-500 transition-all" style="width: 50%"></div>
-                        <div id="completion-bar" class="h-full bg-emerald-500 transition-all" style="width: 50%"></div>
-                    </div>
-                    <div class="flex justify-between mt-2 text-xs text-slate-400">
-                        <span class="flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-sky-500"></span> Prompt
-                        </span>
-                        <span class="flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Completion
-                        </span>
-                    </div>
-                </div>
-                <div>
-                    <div class="text-sm text-slate-500 mb-2">Avg Tokens/Request</div>
-                    <div id="avg-tokens" class="text-2xl font-bold text-slate-900 mono">-</div>
-                </div>
-                <div>
-                    <div class="text-sm text-slate-500 mb-2">Estimated Cost (@ $0.15/1M)</div>
-                    <div id="estimated-cost" class="text-2xl font-bold text-emerald-600 mono">$0.00</div>
-                </div>
-            </div>
-        </div>
+        </section>
 
         <!-- Request History -->
-        <div class="card rounded-lg p-6">
-            <div class="flex justify-between items-center mb-4">
-                <div class="flex items-center gap-2">
-                    <span class="iconify text-slate-400" data-icon="solar:history-bold-duotone"></span>
-                    <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Request History</h2>
+        <section>
+            <div class="card p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="font-mono text-xs text-muted uppercase tracking-wider">[REQUEST_HISTORY]</h2>
+                    <span id="request-count" class="font-mono text-xs text-muted">0 entries</span>
                 </div>
-                <span id="request-count" class="text-sm text-slate-400">0 requests</span>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="font-mono text-xs text-muted uppercase tracking-wider border-b border-slate-200">
+                                <th class="text-left py-3 px-3 font-medium">#</th>
+                                <th class="text-left py-3 px-3 font-medium">timestamp</th>
+                                <th class="text-left py-3 px-3 font-medium">model</th>
+                                <th class="text-right py-3 px-3 font-medium">prompt</th>
+                                <th class="text-right py-3 px-3 font-medium">completion</th>
+                                <th class="text-right py-3 px-3 font-medium">total</th>
+                                <th class="text-right py-3 px-3 font-medium">latency</th>
+                            </tr>
+                        </thead>
+                        <tbody id="request-table" class="text-sm">
+                            <tr><td colspan="7" class="text-center py-8 font-mono text-muted">loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm">
-                    <thead>
-                        <tr class="text-xs text-slate-400 uppercase tracking-wider border-b border-slate-100">
-                            <th class="text-left py-3 px-3 font-medium">#</th>
-                            <th class="text-left py-3 px-3 font-medium">Timestamp</th>
-                            <th class="text-left py-3 px-3 font-medium">Model</th>
-                            <th class="text-right py-3 px-3 font-medium">Prompt</th>
-                            <th class="text-right py-3 px-3 font-medium">Completion</th>
-                            <th class="text-right py-3 px-3 font-medium">Total</th>
-                            <th class="text-right py-3 px-3 font-medium">Latency</th>
-                        </tr>
-                    </thead>
-                    <tbody id="request-table" class="text-slate-600">
-                        <tr><td colspan="7" class="text-center py-8 text-slate-400">Loading...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        </section>
     </main>
 
+    <!-- Footer -->
+    <footer class="container mx-auto px-6 py-8 max-w-6xl">
+        <div class="text-center font-mono text-xs text-muted">
+            <span class="text-slate-struct">┌─</span>
+            Reddar v1.0
+            <span class="text-slate-struct">─┐</span>
+        </div>
+    </footer>
+
     <!-- Drill-down Modal -->
-    <div id="modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden z-50 overflow-y-auto">
+    <div id="modal" class="fixed inset-0 bg-charcoal/30 hidden z-50 overflow-y-auto">
         <div class="min-h-screen px-4 py-8 flex items-start justify-center">
-            <div class="bg-white rounded-lg shadow-2xl w-full max-w-5xl relative">
-                <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 rounded-t-lg flex justify-between items-center">
+            <div class="bg-white border border-slate-200 w-full max-w-5xl relative">
+                <div class="sticky top-0 bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center">
                     <div>
-                        <h3 class="text-lg font-semibold text-slate-900">Request Details</h3>
-                        <p id="modal-meta" class="text-sm text-slate-500 mt-0.5">-</p>
+                        <h3 class="font-editorial text-lg font-bold text-charcoal">Request Details</h3>
+                        <p id="modal-meta" class="font-mono text-xs text-muted mt-0.5">-</p>
                     </div>
-                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-900 transition-colors p-2">
-                        <span class="iconify text-xl" data-icon="solar:close-circle-bold"></span>
+                    <button onclick="closeModal()" class="font-mono text-xs text-muted hover:text-charcoal transition-colors p-2">
+                        [X]
                     </button>
                 </div>
-                
+
                 <div class="p-6 space-y-6">
                     <div class="grid grid-cols-4 gap-4">
-                        <div class="bg-sky-50 rounded-lg p-4 text-center">
-                            <div id="modal-prompt-tokens" class="text-xl font-bold text-sky-600 mono">-</div>
-                            <div class="text-xs text-sky-600/60">Prompt</div>
+                        <div class="bg-slate-50 border border-slate-200 p-4 text-center">
+                            <div id="modal-prompt-tokens" class="font-mono text-xl font-medium text-cyan-accent">-</div>
+                            <div class="font-mono text-xs text-muted">prompt</div>
                         </div>
-                        <div class="bg-emerald-50 rounded-lg p-4 text-center">
-                            <div id="modal-completion-tokens" class="text-xl font-bold text-emerald-600 mono">-</div>
-                            <div class="text-xs text-emerald-600/60">Completion</div>
+                        <div class="bg-slate-50 border border-slate-200 p-4 text-center">
+                            <div id="modal-completion-tokens" class="font-mono text-xl font-medium text-charcoal">-</div>
+                            <div class="font-mono text-xs text-muted">completion</div>
                         </div>
-                        <div class="bg-slate-100 rounded-lg p-4 text-center">
-                            <div id="modal-total-tokens" class="text-xl font-bold text-slate-900 mono">-</div>
-                            <div class="text-xs text-slate-400">Total</div>
+                        <div class="bg-slate-50 border border-slate-200 p-4 text-center">
+                            <div id="modal-total-tokens" class="font-mono text-xl font-medium text-charcoal">-</div>
+                            <div class="font-mono text-xs text-muted">total</div>
                         </div>
-                        <div class="bg-amber-50 rounded-lg p-4 text-center">
-                            <div id="modal-latency" class="text-xl font-bold text-amber-600 mono">-</div>
-                            <div class="text-xs text-amber-600/60">Latency</div>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div class="flex items-center justify-between mb-2">
-                            <div class="flex items-center gap-2">
-                                <span class="iconify text-emerald-500" data-icon="solar:arrow-right-up-bold"></span>
-                                <h4 class="text-sm font-semibold text-slate-700">Prompt</h4>
-                            </div>
-                            <button onclick="copyToClipboard('modal-messages-content')" class="text-xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-1">
-                                <span class="iconify" data-icon="solar:copy-bold"></span> Copy
-                            </button>
-                        </div>
-                        <div id="modal-messages" class="bg-slate-50 border border-slate-200 rounded-lg p-4 max-h-80 overflow-y-auto">
-                            <pre id="modal-messages-content" class="text-sm text-slate-600 whitespace-pre-wrap mono">-</pre>
+                        <div class="bg-slate-50 border border-slate-200 p-4 text-center">
+                            <div id="modal-latency" class="font-mono text-xl font-medium text-charcoal">-</div>
+                            <div class="font-mono text-xs text-muted">latency</div>
                         </div>
                     </div>
 
                     <div>
                         <div class="flex items-center justify-between mb-2">
-                            <div class="flex items-center gap-2">
-                                <span class="iconify text-emerald-500" data-icon="solar:arrow-left-down-bold"></span>
-                                <h4 class="text-sm font-semibold text-slate-700">Response</h4>
-                            </div>
-                            <button onclick="copyToClipboard('modal-response-content')" class="text-xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-1">
-                                <span class="iconify" data-icon="solar:copy-bold"></span> Copy
+                            <h4 class="font-mono text-xs text-muted uppercase tracking-wider">[PROMPT]</h4>
+                            <button onclick="copyToClipboard('modal-messages-content')" class="font-mono text-xs text-muted hover:text-charcoal">
+                                [COPY]
                             </button>
                         </div>
-                        <div id="modal-response" class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 max-h-96 overflow-y-auto">
-                            <pre id="modal-response-content" class="text-sm text-slate-600 whitespace-pre-wrap mono">-</pre>
+                        <div id="modal-messages" class="bg-slate-50 border border-slate-200 p-4 max-h-80 overflow-y-auto">
+                            <pre id="modal-messages-content" class="font-mono text-sm text-charcoal whitespace-pre-wrap">-</pre>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h4 class="font-mono text-xs text-muted uppercase tracking-wider">[RESPONSE]</h4>
+                            <button onclick="copyToClipboard('modal-response-content')" class="font-mono text-xs text-muted hover:text-charcoal">
+                                [COPY]
+                            </button>
+                        </div>
+                        <div id="modal-response" class="bg-slate-50 border border-slate-200 border-l-2 border-l-cyan-accent p-4 max-h-96 overflow-y-auto">
+                            <pre id="modal-response-content" class="font-mono text-sm text-charcoal whitespace-pre-wrap">-</pre>
                         </div>
                     </div>
 
                     <div id="modal-reasoning-section" class="hidden">
                         <div class="flex items-center justify-between mb-2">
-                            <div class="flex items-center gap-2">
-                                <span class="iconify text-amber-500" data-icon="solar:brain-bold"></span>
-                                <h4 class="text-sm font-semibold text-slate-700">Reasoning</h4>
-                            </div>
-                            <button onclick="copyToClipboard('modal-reasoning-content')" class="text-xs text-slate-500 hover:text-slate-900 font-medium flex items-center gap-1">
-                                <span class="iconify" data-icon="solar:copy-bold"></span> Copy
+                            <h4 class="font-mono text-xs text-muted uppercase tracking-wider">[REASONING]</h4>
+                            <button onclick="copyToClipboard('modal-reasoning-content')" class="font-mono text-xs text-muted hover:text-charcoal">
+                                [COPY]
                             </button>
                         </div>
-                        <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 max-h-64 overflow-y-auto">
-                            <pre id="modal-reasoning-content" class="text-sm text-slate-600 whitespace-pre-wrap mono">-</pre>
+                        <div class="bg-slate-50 border border-slate-200 p-4 max-h-64 overflow-y-auto">
+                            <pre id="modal-reasoning-content" class="font-mono text-sm text-charcoal whitespace-pre-wrap">-</pre>
                         </div>
                     </div>
                 </div>
@@ -317,7 +305,7 @@
         function formatDate(timestamp) {
             if (!timestamp) return '-';
             const date = new Date(timestamp);
-            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + 
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) +
                    ' ' + date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
         }
 
@@ -334,8 +322,8 @@
                 maintainAspectRatio: false,
                 plugins: { legend: { display: false } },
                 scales: {
-                    x: { grid: { display: false }, ticks: { font: { size: 10 } } },
-                    y: { grid: { color: '#f4f4f5' }, ticks: { font: { size: 10 } } }
+                    x: { grid: { display: false }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#64748b' } },
+                    y: { grid: { color: '#e2e8f0' }, ticks: { font: { family: 'JetBrains Mono', size: 10 }, color: '#64748b' } }
                 }
             };
 
@@ -344,13 +332,13 @@
                 data: {
                     labels: [],
                     datasets: [
-                        { label: 'Prompt', data: [], backgroundColor: '#0ea5e9', borderRadius: 4 },
-                        { label: 'Completion', data: [], backgroundColor: '#10b981', borderRadius: 4 }
+                        { label: 'Prompt', data: [], backgroundColor: '#0066cc', borderRadius: 0 },
+                        { label: 'Completion', data: [], backgroundColor: '#334155', borderRadius: 0 }
                     ]
                 },
                 options: {
                     ...chartOptions,
-                    plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
+                    plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, font: { family: 'JetBrains Mono', size: 10 }, color: '#64748b' } } },
                     scales: { ...chartOptions.scales, x: { ...chartOptions.scales.x, stacked: true }, y: { ...chartOptions.scales.y, stacked: true } }
                 }
             });
@@ -362,12 +350,13 @@
                     datasets: [{
                         label: 'Latency (s)',
                         data: [],
-                        borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                        borderColor: '#0066cc',
+                        backgroundColor: 'rgba(0, 102, 204, 0.1)',
                         fill: true,
-                        tension: 0.3,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#f59e0b',
+                        tension: 0,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#0066cc',
+                        borderWidth: 1,
                     }]
                 },
                 options: chartOptions
@@ -377,7 +366,7 @@
         function updateCharts(requests) {
             const reversed = [...requests].reverse();
             const labels = reversed.map((r, i) => `#${reversed.length - i}`);
-            
+
             tokensChart.data.labels = labels;
             tokensChart.data.datasets[0].data = reversed.map(r => r.prompt_tokens || 0);
             tokensChart.data.datasets[1].data = reversed.map(r => r.completion_tokens || 0);
@@ -390,9 +379,8 @@
 
         function updateUI(data) {
             const statusEl = document.getElementById('connection-status');
-            statusEl.innerHTML = data.connected 
-                ? '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span class="text-emerald-600">Connected</span>'
-                : '<span class="w-2 h-2 rounded-full bg-amber-500"></span><span class="text-amber-600">Disconnected</span>';
+            statusEl.textContent = data.connected ? '[CONNECTED]' : '[OFFLINE]';
+            statusEl.className = data.connected ? 'font-mono text-xs text-cyan-accent' : 'font-mono text-xs text-amber-600';
 
             document.getElementById('total-requests').textContent = formatNumber(data.total_requests);
             document.getElementById('total-tokens').textContent = formatNumber(data.total_tokens);
@@ -403,40 +391,37 @@
             const promptPct = data.total_tokens > 0 ? (data.prompt_tokens / data.total_tokens) * 100 : 50;
             document.getElementById('prompt-bar').style.width = promptPct + '%';
             document.getElementById('completion-bar').style.width = (100 - promptPct) + '%';
-            document.getElementById('ratio').textContent = `${promptPct.toFixed(0)}% / ${(100 - promptPct).toFixed(0)}%`;
-            
+            document.getElementById('ratio').textContent = `${promptPct.toFixed(0)}%:${(100 - promptPct).toFixed(0)}%`;
+
             const avgTokens = data.total_requests > 0 ? Math.round(data.total_tokens / data.total_requests) : 0;
             document.getElementById('avg-tokens').textContent = formatNumber(avgTokens);
-            
+
             const cost = (data.total_tokens / 1000000) * 0.15;
             document.getElementById('estimated-cost').textContent = '$' + cost.toFixed(4);
 
-            document.getElementById('request-count').textContent = `${data.recent_logs?.length || 0} requests`;
+            document.getElementById('request-count').textContent = `${data.recent_logs?.length || 0} entries`;
 
             window.requestLogs = data.recent_logs || [];
 
             const tbody = document.getElementById('request-table');
             if (data.recent_logs && data.recent_logs.length > 0) {
                 tbody.innerHTML = data.recent_logs.map((log, i) => `
-                    <tr class="border-b border-slate-100 hover:bg-emerald-50/30 cursor-pointer transition-colors" onclick="openModal(${i})">
-                        <td class="py-3 px-3 text-slate-400 mono">${i + 1}</td>
-                        <td class="py-3 px-3 text-slate-600">${formatDate(log.timestamp)}</td>
+                    <tr class="border-b border-slate-100 hover:bg-slate-50 cursor-pointer transition-colors" onclick="openModal(${i})">
+                        <td class="py-3 px-3 font-mono text-xs text-muted">${i + 1}</td>
+                        <td class="py-3 px-3 font-mono text-xs text-charcoal">${formatDate(log.timestamp)}</td>
                         <td class="py-3 px-3">
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700">
-                                <span class="iconify text-xs" data-icon="solar:cpu-bolt-bold"></span>
-                                ${log.model || '-'}
-                            </span>
+                            <span class="font-mono text-xs text-cyan-accent">${log.model || '-'}</span>
                         </td>
-                        <td class="py-3 px-3 text-right mono">${formatNumber(log.prompt_tokens)}</td>
-                        <td class="py-3 px-3 text-right mono">${formatNumber(log.completion_tokens)}</td>
-                        <td class="py-3 px-3 text-right font-semibold text-slate-900 mono">${formatNumber(log.total_tokens)}</td>
-                        <td class="py-3 px-3 text-right text-slate-500 mono">${formatLatency(log.latency_ms)}</td>
+                        <td class="py-3 px-3 text-right font-mono text-xs text-charcoal">${formatNumber(log.prompt_tokens)}</td>
+                        <td class="py-3 px-3 text-right font-mono text-xs text-charcoal">${formatNumber(log.completion_tokens)}</td>
+                        <td class="py-3 px-3 text-right font-mono text-xs font-medium text-charcoal">${formatNumber(log.total_tokens)}</td>
+                        <td class="py-3 px-3 text-right font-mono text-xs text-muted">${formatLatency(log.latency_ms)}</td>
                     </tr>
                 `).join('');
 
                 updateCharts(data.recent_logs);
             } else {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">No requests yet</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 font-mono text-xs text-muted">no_requests</td></tr>`;
             }
         }
 
@@ -444,7 +429,7 @@
             const log = window.requestLogs[index];
             if (!log) return;
 
-            document.getElementById('modal-meta').textContent = `${log.model || 'Unknown model'} - ${formatDate(log.timestamp)}`;
+            document.getElementById('modal-meta').textContent = `${log.model || 'unknown'} | ${formatDate(log.timestamp)}`;
 
             document.getElementById('modal-prompt-tokens').textContent = formatNumber(log.prompt_tokens);
             document.getElementById('modal-completion-tokens').textContent = formatNumber(log.completion_tokens);
@@ -455,11 +440,11 @@
             if (log.messages && log.messages.length > 0) {
                 messagesText = log.messages.map(m => `[${m.role.toUpperCase()}]\n${m.content || ''}`).join('\n\n---\n\n');
             } else {
-                messagesText = '(No prompt data available)';
+                messagesText = '(no prompt data)';
             }
             document.getElementById('modal-messages-content').textContent = messagesText;
 
-            document.getElementById('modal-response-content').textContent = log.response || '(No response data available)';
+            document.getElementById('modal-response-content').textContent = log.response || '(no response data)';
 
             const reasoningSection = document.getElementById('modal-reasoning-section');
             if (log.reasoning && log.reasoning.trim()) {
