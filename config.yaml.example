@@ -1,11 +1,21 @@
 # Reddit Intelligence Agent Configuration
 
-# LLM Settings (direct to SGLang, usage tracked internally)
+# LLM Settings - supports multiple providers
+# Providers: "ollama", "sglang", "vllm", "openai", "openai-compatible"
 llm:
-  base_url: "http://localhost:8000/v1"
+  provider: "sglang"  # Change to "ollama" to use Ollama
+  base_url: "http://localhost:8000/v1"  # Optional: auto-detected from provider
   model: "glm-4.7-flash"
   max_tokens: 8000
   temperature: 0.7
+  # api_key: ""  # Only needed for OpenAI or authenticated endpoints
+
+# Example Ollama configuration:
+# llm:
+#   provider: "ollama"
+#   model: "llama3.2"  # or mistral, qwen2.5, codellama, etc.
+#   max_tokens: 8000
+#   temperature: 0.7
 
 # Focus Areas - each has associated subreddits and keywords
 focus_areas:
@@ -26,7 +36,7 @@ focus_areas:
       - "built and sold"
       - "MRR"
       - "revenue"
-    
+
   dev_tools:
     name: "Developer Tools & Infrastructure"
     description: "Find opportunities in developer tooling and infrastructure"
@@ -41,7 +51,7 @@ focus_areas:
       - "self-hosted"
       - "open source"
       - "developer experience"
-      
+
   ai_ml:
     name: "AI/ML Applications"
     description: "AI and machine learning business opportunities"
@@ -104,12 +114,15 @@ scraper:
   max_comments_per_post: 10
   min_upvotes: 5
   user_agent: "RedditIntel/1.0 (Research Bot)"
+  # Rate limiting (increase if getting 429 errors)
+  delay_between_requests: 3.0  # seconds between comment fetches
+  delay_between_subreddits: 6.0  # seconds between subreddits
 
-# Scheduler settings  
+# Scheduler settings
 scheduler:
   enabled: true
   interval_hours: 1
-  
+
 # Web dashboard
 web:
   host: "0.0.0.0"

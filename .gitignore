@@ -2,6 +2,13 @@
 data/
 reports/
 
+# Config (use config.yaml.example as template)
+config.yaml
+
+# Backup files
+*.backup
+*.bak
+
 # Python
 __pycache__/
 *.py[cod]
@@ -14,6 +21,7 @@ venv/
 # IDE
 .vscode/
 .idea/
+.claude/
 *.swp
 *.swo
 

@@ -1,4 +1,4 @@
-"""LLM-powered analyzer - Uses local Morpheus endpoint to analyze scraped data."""
+"""LLM-powered analyzer - Supports Ollama, SGLang, vLLM, and OpenAI-compatible endpoints."""
 
 import json
 import httpx
@@ -6,6 +6,30 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 import yaml
+
+# Provider presets for common LLM backends
+PROVIDER_PRESETS = {
+    "ollama": {
+        "base_url": "http://localhost:11434/v1",
+        "default_model": "llama3.2",
+    },
+    "sglang": {
+        "base_url": "http://localhost:8000/v1",
+        "default_model": "default",
+    },
+    "vllm": {
+        "base_url": "http://localhost:8000/v1",
+        "default_model": "default",
+    },
+    "openai": {
+        "base_url": "https://api.openai.com/v1",
+        "default_model": "gpt-4o-mini",
+    },
+    "openai-compatible": {
+        "base_url": "http://localhost:8000/v1",
+        "default_model": "default",
+    },
+}
 
 
 def load_config() -> dict:
@@ -84,10 +108,21 @@ def call_llm(
         config = load_config()
 
     llm_config = config.get("llm", {})
-    base_url = llm_config.get("base_url", "http://localhost:8000/v1")
-    model = llm_config.get("model", "glm-4.7-flash")
+
+    # Resolve provider and apply presets
+    provider = llm_config.get("provider", "openai-compatible")
+    presets = PROVIDER_PRESETS.get(provider, PROVIDER_PRESETS["openai-compatible"])
+
+    base_url = llm_config.get("base_url", presets["base_url"])
+    model = llm_config.get("model", presets.get("default_model", "default"))
     max_tokens = llm_config.get("max_tokens", 8000)
     temperature = llm_config.get("temperature", 0.7)
+    api_key = llm_config.get("api_key")
+
+    # Build headers
+    headers = {"Content-Type": "application/json"}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
 
     messages = []
     if system_prompt:
@@ -97,9 +132,14 @@ def call_llm(
     payload = {
         "model": model,
         "messages": messages,
-        "max_tokens": max_tokens,
-        "temperature": temperature,
     }
+
+    # GPT-5 series requires max_completion_tokens and doesn't support custom temperature
+    if model.startswith("gpt-5"):
+        payload["max_completion_tokens"] = max_tokens
+    else:
+        payload["max_tokens"] = max_tokens
+        payload["temperature"] = temperature
 
     if json_mode:
         payload["response_format"] = {"type": "json_object"}
@@ -109,6 +149,7 @@ def call_llm(
         response = httpx.post(
             f"{base_url}/chat/completions",
             json=payload,
+            headers=headers,
             timeout=300,  # 5 min timeout for large context
         )
         latency_ms = int((time.time() - start_time) * 1000)
@@ -134,6 +175,10 @@ def call_llm(
 
         return content, reasoning
 
+    except httpx.HTTPStatusError as e:
+        print(f"LLM call failed: {e}")
+        print(f"Response body: {e.response.text}")
+        raise
     except Exception as e:
         print(f"LLM call failed: {e}")
         raise

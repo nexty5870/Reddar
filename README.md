@@ -4,6 +4,8 @@
 
 Reddar scrapes Reddit, analyzes posts with a local LLM, and presents actionable insights through a clean web dashboard.
 
+## This is a Fork of: https://github.com/nexty5870/Reddar
+
 ## Features
 
 - **Multi-mode Analysis**: Opportunity discovery or news/intel gathering
@@ -29,8 +31,8 @@ Reddar scrapes Reddit, analyzes posts with a local LLM, and presents actionable 
 ## Requirements
 
 - Python 3.10+
-- Local LLM server (SGLang, vLLM, or OpenAI-compatible API)
-- ~8GB+ VRAM for recommended models
+- Local LLM server: [Ollama](https://ollama.ai) (easiest), SGLang, vLLM, or OpenAI API
+- ~8GB+ VRAM for recommended models (or use smaller quantized models)
 
 ## Quick Start
 
@@ -39,14 +41,15 @@ Reddar scrapes Reddit, analyzes posts with a local LLM, and presents actionable 
 git clone https://github.com/nexty5870/Reddar.git
 cd Reddar
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies (creates venv automatically)
+./start.sh install
 
-# Configure your LLM endpoint in config.yaml
-# Default expects SGLang on localhost:8000
+# Copy and configure your settings
+cp config.yaml.example config.yaml
+# Edit config.yaml to set your LLM provider (ollama, sglang, vllm, openai)
 
-# Start the dashboard
-python web/app.py
+# Run the agent and open dashboard
+./start.sh
 ```
 
 Visit `http://localhost:8501` to access the dashboard.
@@ -58,8 +61,8 @@ Edit `config.yaml` to customize:
 ```yaml
 # LLM Settings
 llm:
-  base_url: "http://localhost:8000/v1"
-  model: "glm-4.7-flash"  # or any OpenAI-compatible model
+  provider: "sglang"  # ollama, sglang, vllm, openai, openai-compatible
+  model: "glm-4.7-flash"
   max_tokens: 8000
   temperature: 0.7
 
@@ -85,6 +88,53 @@ focus_areas:
       - opensource
 ```
 
+## LLM Providers
+
+Reddar supports multiple LLM backends. Set the `provider` field to auto-configure defaults, or override with custom settings.
+
+### Ollama
+
+```yaml
+llm:
+  provider: "ollama"
+  model: "llama3.2"  # or mistral, qwen2.5, codellama, etc.
+```
+
+Default endpoint: `http://localhost:11434/v1`
+
+### SGLang / vLLM
+
+```yaml
+llm:
+  provider: "sglang"  # or "vllm"
+  model: "glm-4.7-flash"
+```
+
+Default endpoint: `http://localhost:8000/v1`
+
+### OpenAI
+
+```yaml
+llm:
+  provider: "openai"
+  model: "gpt-4o-mini"
+  api_key: "sk-..."
+```
+
+Default endpoint: `https://api.openai.com/v1`
+
+### Generic OpenAI-Compatible
+
+For any OpenAI-compatible endpoint:
+
+```yaml
+llm:
+  provider: "openai-compatible"
+  base_url: "http://your-server:8000/v1"
+  model: "your-model"
+  api_key: ""  # if required
+```
+
 ## Modes
 
 ### Opportunities Mode (default)
@@ -105,35 +155,61 @@ Extracts:
 
 ```
 reddar/
+├── start.sh            # Main entry point - run everything from here
+├── config.yaml.example # Configuration template
+├── config.yaml         # Your local config (gitignored)
 ├── src/
 │   ├── scraper.py      # Reddit JSON API scraper
 │   ├── analyzer.py     # LLM analysis with batching
-│   └── agent.py        # CLI pipeline orchestrator
+│   └── agent.py        # Pipeline orchestrator
 ├── web/
 │   ├── app.py          # Flask dashboard
 │   └── templates/      # Jinja2 templates
 ├── data/               # Scrape data (gitignored)
 ├── reports/            # Generated reports (gitignored)
-└── config.yaml         # Configuration
+└── venv/               # Python virtual environment (gitignored)
 ```
 
 ## Usage
 
-### Web Dashboard
-```bash
-python web/app.py
-```
+All commands go through `start.sh`, which handles venv detection and LLM validation.
 
-### CLI
 ```bash
-# Run specific focus area
-python src/agent.py saas_opportunities
+# Run default agent (saas_opportunities) + open dashboard
+./start.sh
+
+# Run specific focus area + dashboard
+./start.sh ai_opensource_news
+
+# Run agent only (no dashboard)
+./start.sh agent saas_opportunities
+
+# Run all focus areas
+./start.sh all
+
+# Just open the dashboard (view existing reports)
+./start.sh web
+
+# Just scrape Reddit (no analysis)
+./start.sh scrape dev_tools
+
+# Just analyze existing scrape data
+./start.sh analyze dev_tools
+
+# Check status (LLM connection, dashboard, token usage)
+./start.sh status
 
 # List available focus areas
-python src/agent.py --list
+./start.sh list
 
-# Run without starting web dashboard
-python src/agent.py ai_opensource_news --no-web
+# Stop dashboard
+./start.sh stop
+
+# Install/update dependencies
+./start.sh install
+
+# Show all commands
+./start.sh help
 ```
 
 ## License
