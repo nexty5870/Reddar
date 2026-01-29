@@ -14,17 +14,17 @@ Reddar scrapes Reddit, analyzes posts with a local LLM, and presents actionable 
 
 ## Screenshots
 
+### UI Design: Cyber-Serif Editorial Engineering
+![Before/After Comparison](screenshots/comparison-twitter.png)
+
 ### Dashboard
-![Dashboard](screenshots/dashboard.png)
+![Dashboard](screenshots/after-dashboard.png)
 
 ### Run Agent
-![Run Agent](screenshots/run-agent.png)
+![Run Agent](screenshots/after-run.png)
 
-### Report View
-![Report](screenshots/report.png)
-
-### LLM Usage
-![Usage](screenshots/usage.png)
+### LLM Usage Analytics
+![Usage](screenshots/after-usage.png)
 
 ## Requirements
 
